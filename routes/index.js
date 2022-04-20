@@ -211,21 +211,27 @@ router.put('/entries/', async function(req, res, next) {
     return res.json({'error': error });
   }
   console.log('category:', category);
+  console.log('req.body:', req.body);
   // get from request
   const user = {'username': req.body['user']};
 
   if (!suma_code && !infinity_code) {
+    console.log('no product code provided');
     return res.json({'error': 'no product code provided' });
   }
 
   let data = {
   };
 
-  // check codes
-  await catalog_utils.get_product_data(infinity_code, 'infinity', data);
-  // console.log('data:', data);
-  await catalog_utils.get_product_data(suma_code, 'suma', data);
-  //console.log('data:', data);
+  try {
+    // check codes
+    await catalog_utils.get_product_data(infinity_code, 'infinity', data);
+    // console.log('data:', data);
+    await catalog_utils.get_product_data(suma_code, 'suma', data);
+    //console.log('data:', data);
+  } catch (error) {
+    return res.json({'error': error});
+  }
 
   // console.log('category:', category);
   data['category'] = {'connect': {'id': category.id}};
