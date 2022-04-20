@@ -224,6 +224,7 @@ router.put('/entries/', async function(req, res, next) {
   };
 
   try {
+    console.log('about to get_product_data');
     // check codes
     await catalog_utils.get_product_data(infinity_code, 'infinity', data);
     // console.log('data:', data);
