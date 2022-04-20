@@ -55,7 +55,7 @@ function download_catalogue(supplier) {
                 reject(error);
             } );
         });    
-        request.on('error', function(err) {
+        request.on('error', function(error) {
             console.log('https error:', error);
         });
     });
