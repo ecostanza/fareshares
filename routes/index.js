@@ -248,7 +248,7 @@ router.put('/entries/', async function(req, res, next) {
     result = {'error': 'entry create error ' + error};
   }        
 
-  res.json(result);
+  return res.json(result);
 });
 
 
