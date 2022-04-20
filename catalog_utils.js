@@ -37,7 +37,9 @@ function download_catalogue(supplier) {
         url = process.env.SUMA_URL;
         filename = 'suma_catalogue.csv';
     }
+    console.log('about to createWriteStream');
     let file = fs.createWriteStream(filename);
+    console.log('after createWriteStream');
     return new Promise( function (resolve, reject) {
         const request = https.get(url, function(response) {
             response.pipe(file);
