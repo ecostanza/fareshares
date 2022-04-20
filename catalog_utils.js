@@ -28,6 +28,7 @@ const { e } = require('nunjucks/src/filters');
 const https = require('https'); // or 'https' for https:// URLs
 
 function download_catalogue(supplier) {
+    console.log('download_catalogue');
     let url = 'https://www.infinityfoodswholesale.coop/download/c50f-2a5b-2174-ac03-fd54-92b7-eb55-4717/';
     let filename = "infinity_catalogue.csv";
     if (supplier === 'suma') {
@@ -44,10 +45,13 @@ function download_catalogue(supplier) {
             // after download completed close filestream
             file.on("finish", () => {
                 file.close();
-                // console.log("Download Completed");
+                console.log("Download Completed");
                 resolve();
             });
-            file.on('error', error => reject(error) );
+            file.on('error', function (error) {
+                console.log('https get error:', error);
+                reject(error);
+            } );
         });    
     });
 }
