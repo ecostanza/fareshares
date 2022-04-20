@@ -181,7 +181,7 @@ router.put('/entries/', async function(req, res, next) {
   const suma_code = req.body['suma'].toLowerCase();
   const category_name = req.body['category_name'];
   if (!category_name) {
-    throw 'error: no category name provided';
+    return res.json({'error': 'no category name provided' });
   }
 
   let category = null;
@@ -208,14 +208,14 @@ router.put('/entries/', async function(req, res, next) {
     }
   } catch (error) {
     console.log('category error:', error);
-    throw error;
+    return res.json({'error': error });
   }
   console.log('category:', category);
   // get from request
   const user = {'username': req.body['user']};
 
   if (!suma_code && !infinity_code) {
-    throw 'error: no product code provided';
+    return res.json({'error': 'no product code provided' });
   }
 
   let data = {
