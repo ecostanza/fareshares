@@ -51,10 +51,13 @@ function download_catalogue(supplier) {
                 resolve();
             });
             file.on('error', function (error) {
-                console.log('https get error:', error);
+                console.log('file error:', error);
                 reject(error);
             } );
         });    
+        request.on('error', function(err) {
+            console.log('https error:', error);
+        });
     });
 }
 
