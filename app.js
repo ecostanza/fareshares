@@ -27,7 +27,7 @@ const nunjucks = require('nunjucks');
 const passport = require('passport');
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+// const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 
 // from https://stackoverflow.com/a/54623372/6872193
