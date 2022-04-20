@@ -72,3 +72,10 @@ model Entry {
 
   updatedBy String  
 }
+
+model User {
+  id  Int   @id @default(autoincrement())
+  username  String @unique
+  hashed_password  String
+  is_admin  Boolean
+}
