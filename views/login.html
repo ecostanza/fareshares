@@ -1,0 +1,98 @@
+<!--
+This file is part of fareshares-pricelist a simple nodejs web application to 
+manage the pricelist of a food coop.
+
+Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- local imports -->
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+
+    <title>Login</title>
+  </head>
+  <body>
+    <!--
+    <div class="main-loading" style="display: block;">
+        <div>
+        Loading. Please wait.<br>
+        <div class="spinner-border align-middle" role="status">        
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        </div>
+    </div>
+    -->
+
+  <div class="container">
+  <main>
+    <div class="py-5 text-center">
+    <h2>Login</h2>
+    </div>
+      <div class="row g-5">
+      <div class="col">
+
+        <form id="loginForm">
+        <fieldset id="searchFormFieldset">
+        <div class="mb-3">
+          <label for="usernameInput" class="form-label">Username</label>
+          <input type="text" class="form-control needs-validation" name="username" autocomplete="username" id="usernameInput" aria-describedby="usernameInputHelp" required>
+          <div id="productIDHelp" class="form-text">Please enter your username.</div>
+          <div class="invalid-feedback">
+            Username or password not valid.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="passwordInput" class="form-label">Password</label>
+          <input type="password" class="form-control needs-validation" name="password" autocomplete="password" id="passwordInput" aria-describedby="usernameInputHelp" required>
+          <div id="productIDHelp" class="form-text">Please enter your password.</div>
+          <div class="invalid-feedback">
+            Username or password not valid.
+          </div>
+        </div>
+
+        <button 
+          id="loginButton" 
+          class="btn btn-primary" 
+          type="button" 
+          aria-disabled="true">Login</button>
+        </fieldset>
+        </form>
+          
+
+      </div>
+      </div>
+  </main>
+  </div>
+
+    <!-- Optional JavaScript -->
+    <script src="/static/js/libs/bootstrap.bundle.min.js"></script>
+
+    <!-- local imports -->
+    <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
+    <script type="text/javascript" src="/static/js/login.js"></script>
+
+  </body>
+</html>

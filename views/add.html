@@ -1,0 +1,123 @@
+<!--
+This file is part of fareshares-pricelist a simple nodejs web application to 
+manage the pricelist of a food coop.
+
+Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container">
+  <main>
+    <div class="py-5 text-center">
+    <h2>Add Product to Pricelist</h2>
+    </div>
+      <div class="row g-5">
+      <div class="col">
+
+        <form id="searchForm">
+        <fieldset id="searchFormFieldset">
+        <div class="mb-3">
+          <label for="productID" class="form-label">Product ID</label>
+          <input type="text" class="form-control needs-validation" id="productID" aria-describedby="productIDHelp" required>
+          <div id="productIDHelp" class="form-text">The product code from Infinity or Suma.</div>
+          <div class="invalid-feedback">
+            Product code not found from the selected supplier.
+          </div>
+        </div>
+        <div class="form-check">
+          <input 
+            class="form-check-input needs-validation" 
+            type="radio" 
+            value="suma"
+            name="supplierRadio" 
+            id="flexRadioSuma">
+          <label class="form-check-label" for="flexRadioSuma">
+            Suma
+          </label>
+        </div>
+        <div class="form-check">
+          <input 
+            class="form-check-input needs-validation" 
+            type="radio" 
+            value="infinity"
+            name="supplierRadio" 
+            id="flexRadioInfinity">
+          <label class="form-check-label" for="flexRadioInfinity">
+            Infinity
+          </label>
+        </div>      
+
+        <!--
+        <div class="mb-3">
+          <label for="categorySelect" class="form-label">Category:</label>
+          <select class="form-select" name="categorySelect" id="categorySelect" aria-label="Category selection">
+          <option value="">Please select one</option>
+            {% for c in categories %}
+            <option value="{{ c.name }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+          <div class="invalid-feedback">
+            Please select a category.
+          </div>
+        </div>
+        -->
+        <div class="mb-3">
+          <label for="categorySelect" class="form-label">Category:</label>
+          <input type="text" id="category_autocomplete" class="form-control" >
+          <div class="invalid-feedback">
+            Please select a category.
+          </div>
+        </div>
+
+        <button 
+          id="findButton" 
+          class="btn btn-primary" 
+          type="button" 
+          disabled
+          aria-disabled="true">Find</button>
+        </fieldset>
+        </form>
+          
+        <form id="matchesForm">
+        <fieldset id="matchesFormFieldset">
+          <div id="results" class=""></div>
+        </fieldset>
+        </form>
+        <div id="feedback" class=""></div>
+
+      </div>
+      </div>
+  </main>
+  </div>
+
+{% endblock %}
+
+
+{% block js %}
+    <!-- local imports -->
+    <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
+    <script type="text/javascript" src="/static/js/libs/autocomplete.js"></script>
+    <script type="text/javascript" src="/static/js/add.js"></script>
+    <script type="text/javascript">
+      const categories = [];
+      {% for c in categories %}
+      categories.push("{{ c.name }}");
+      {% endfor %}
+    </script>
+{% endblock %}
+

@@ -1,0 +1,121 @@
+<!--
+This file is part of fareshares-pricelist a simple nodejs web application to 
+manage the pricelist of a food coop.
+
+Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- local imports -->
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+
+    <title>Pricelist</title>
+  </head>
+  <body>
+
+    {% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Fareshares Pricelist</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_blank">Printable Pricelist</a>
+            </li>
+            <li class="nav-item">
+              <a 
+              {% if nav_url === '/manage_pricelist' %}
+              class="nav-link active" aria-current="page" 
+              {% else %}
+              class="nav-link" 
+              {% endif %}
+              href="/manage_pricelist">Manage Pricelist</a>
+            </li>
+            <li class="nav-item">
+              <a 
+              {% if nav_url === '/add' %}
+              class="nav-link active" aria-current="page" 
+              {% else %}
+              class="nav-link" 
+              {% endif %}
+              href="/add">Add Entry</a>
+            </li>
+            <li class="nav-item">
+              <a 
+              {% if nav_url === '/batch_add' %}
+              class="nav-link active" aria-current="page" 
+              {% else %}
+              class="nav-link" 
+              {% endif %}
+              href="/batch_add">Batch Add Entries</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled" href="/categories" tabindex="-1" aria-disabled="true">Manage Categories</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled" href="/users" tabindex="-1" aria-disabled="true">Manage Users</a>
+            </li>
+          </ul>
+          <!--
+          <form class="d-flex">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+          </form>
+          -->
+        </div>
+      </div>
+    </nav>
+    {% endblock %} 
+
+    <!--
+    <div class="main-loading" style="display: block;">
+        <div>
+        Loading. Please wait.<br>
+        <div class="spinner-border align-middle" role="status">        
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        </div>
+    </div>
+    -->
+
+    {% block content %}
+    {% endblock %}
+
+    <!-- Optional JavaScript -->
+    <script src="/static/js/libs/bootstrap.bundle.min.js"></script>
+
+    <!-- local imports -->
+    <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
+
+    {% block js %}
+    <script type="text/javascript" src="/static/js/index.js"></script>
+    {% endblock %}
+
+  </body>
+</html>

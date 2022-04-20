@@ -1,0 +1,75 @@
+/// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+//  This file is part of fareshares-pricelist a simple nodejs web application to 
+// manage the pricelist of a food coop.
+// 
+// Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+// 
+// This program is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option)
+// any later version.
+
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+// 
+// You should have received a copy of the GNU General Public License along with
+// this program. If not, see <http://www.gnu.org/licenses/>. 
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  //provider = "postgresql"
+  //url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
+  // url      = "dev.db"
+}
+
+model Category {
+  id  Int   @id @default(autoincrement())
+  name  String @unique
+  sort_order  Int?
+  entries     Entry[]
+}
+
+model Entry {
+  id          Int     @id @default(autoincrement())
+  suma        String?  @unique
+  infinity    String?  @unique
+
+  suma_desc   String?
+  infinity_desc   String?
+  brand       String
+
+  n_items       Int
+  item_size       Float
+  item_unit       String
+
+  suma_price  Float?
+  infinity_price  Float?
+
+  fareshares_price  Float
+  prev_fareshares_price  Float?
+  price_updatedAt DateTime?
+
+  vat     Boolean
+  organic     Boolean
+
+  sort_order  Int?
+  
+  category  Category  @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+
+  preferred_supplier    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  updatedBy String  
+}

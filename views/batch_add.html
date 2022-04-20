@@ -1,0 +1,64 @@
+<!--
+This file is part of fareshares-pricelist a simple nodejs web application to 
+manage the pricelist of a food coop.
+
+Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container">
+  <main>
+    <div class="py-5 text-center">
+    <h2>Add Products to Pricelist in Batch</h2>
+    </div>
+      <div class="row">
+      <div class="col">
+        This requires a csv text, with format Category,Description,Infinity,Suma
+      </div>
+      </div>
+      <div class="row g-5">
+      <div class="col">
+
+        <div id="csv_input" contenteditable="true">
+          Please paste csv data here.
+        </div>
+
+        <button 
+          id="processButton" 
+          class="btn btn-primary" 
+          type="button">Process</button>
+
+        <span id="progress"></span>  
+        <div id="bar"></div>
+
+      </div>
+      </div>
+  </main>
+  </div>
+
+{% endblock %}
+
+
+{% block js %}
+    <!-- local imports -->
+    <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
+    <script type="text/javascript" src="/static/js/batch_add.js"></script>
+    <script type="text/javascript">
+      const username = "{{ username }}";
+    </script>
+{% endblock %}
