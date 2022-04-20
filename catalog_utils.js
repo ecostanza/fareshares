@@ -205,6 +205,7 @@ const do_get_product_data = async function (product_code, supplier, data) {
 };
 
 const get_product_data = async function (product_code, supplier, data) {
+    console.log('get_product_data');
     let filename = 'infinity_catalogue.csv';
     if (supplier.toLowerCase() === 'suma') {
         filename = 'suma_catalogue.csv';
@@ -216,6 +217,7 @@ const get_product_data = async function (product_code, supplier, data) {
         }
         return await do_get_product_data(product_code, supplier, data);
     } catch (error) {
+        console.log('get_product_data error:', error);
         throw new Error(error);
     }
 };
