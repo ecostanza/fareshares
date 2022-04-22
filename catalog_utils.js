@@ -105,16 +105,17 @@ function do_find_product (code, supplier) {
             found_item['add_vat'] = row[' VAT'] === '1';
             found_item['brand'] = row['BRAND'];
             found_item['pack size'] = row['SIZE'].toLowerCase().replace(/\s/g, '');
-            const matches = [...found_item['pack size'].matchAll(/(\d+)x(\d+)(\w*)/g)][0];
+            const matches = [...found_item['pack size'].matchAll(/(\d+)x(\.\d+)(\w*)/g)][0];
             // console.log('matches:', matches);
             if (matches) {
                 found_item['units case'] = parseInt(matches[1], 10);
                 found_item['pk size'] = parseInt(matches[2], 10);
                 found_item['unit'] = matches[3];
             } else {
+                const alt_matches = [...found_item['pack size'].matchAll(/(\.\d+)\s?(\w*)/g)][0];
                 found_item['units case'] = 1;
-                found_item['pk size'] = 1;
-                found_item['unit'] = '';
+                found_item['pk size'] = parseInt(alt_matches[1], 10);
+                found_item['unit'] = alt_matches[2];
             }
             found_item['PRICE'] = parseFloat(found_item['PRICE'], 10);
             // console.log('found_item:', found_item);
