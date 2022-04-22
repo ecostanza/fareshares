@@ -61,9 +61,8 @@ router.get('/batch_add/', async function(req, res, next) {
   if ( !req.user.is_admin ) {
     return res.redirect('/');
   }
-  // res.render('index', { title: 'Express' });
-  // const categories = await prisma.category.findMany({});
-  console.log('get batch_add');
+
+  // console.log('get batch_add');
   res.render('batch_add.html', { 
     'title': 'Batch Add Products',
     'nav_url': '/batch_add',
@@ -75,7 +74,7 @@ router.get('/add/', async function(req, res, next) {
   if ( !req.user.is_admin ) {
     return res.redirect('/');
   }
-  // res.render('index', { title: 'Express' });
+
   const categories = await prisma.category.findMany({});
   // console.log('get add, categories:', categories);
   res.render('add.html', { 
@@ -98,13 +97,12 @@ router.get('/matching_products/', function(req, res, next) {
   
   catalog_utils.find_product(code, supplier)
     .then(function (product_details) {
-      // TODO: do I need to return?
-      console.log('first then');
+      // console.log('first then');
       return catalog_utils.find_matches(product_details, other_supplier);
     })
     .then(function (result) {
-      console.log('second then');
-      console.log('result:', result);
+      // console.log('second then');
+      // console.log('result:', result);
       res.json(result);
     })
     .catch(function (error) {
@@ -127,7 +125,7 @@ router.delete('/entries/:entry_id', async function (req, res) {
       const result = await prisma.entry.delete({
         'where': {id: entry_id}
       });
-      console.log('delete result:', result);
+      // console.log('delete result:', result);
       res.json(result);
     } catch (error) {
       console.log('delete error:', error);
@@ -140,10 +138,10 @@ router.post('/entries/:entry_id', async function (req, res) {
   const entry_id = parseInt(req.params['entry_id'], 10);
   const expected_fields = ['preferred_supplier', 'category_name'];
   const data = {};
-  console.log('req.body:', req.body);
+  // console.log('req.body:', req.body);
   for (const k in expected_fields) {
     const field = expected_fields[k];
-    console.log(`field ${field}, req.body[field] ${req.body[field]}`);
+    // console.log(`field ${field}, req.body[field] ${req.body[field]}`);
     if (req.body[field]) {
       data[field] = req.body[field];
     }
@@ -151,14 +149,14 @@ router.post('/entries/:entry_id', async function (req, res) {
   
 
   try {
-    console.log('data:', data);
+    // console.log('data:', data);
     const result = await prisma.entry.update({
       'where': {id: entry_id},
       'data': data
     });
-    console.log('update result:', result);
+    // console.log('update result:', result);
     catalog_utils.calculate_price(result);
-    console.log('result:', result);
+    // console.log('result:', result);
     const price_result = await prisma.entry.update({
       'where': {id: entry_id},
       'data': result
@@ -175,7 +173,7 @@ router.post('/entries/:entry_id', async function (req, res) {
 // and add POST /entries/:entry_id for editing
 router.put('/entries/', async function(req, res, next) {
   // res.render('index', { title: 'Express' });
-  console.log(req.body);
+  // console.log(req.body);
   // get codes from request body
   const infinity_code = req.body['infinity'].toLowerCase();
   const suma_code = req.body['suma'].toLowerCase();
@@ -210,13 +208,11 @@ router.put('/entries/', async function(req, res, next) {
     console.log('category error:', error);
     return res.json({'error': error });
   }
-  console.log('category:', category);
-  console.log('req.body:', req.body);
+  // console.log('category:', category);
   // get from request
   const user = {'username': req.body['user']};
 
   if (!suma_code && !infinity_code) {
-    console.log('no product code provided');
     return res.json({'error': 'no product code provided' });
   }
 
@@ -224,7 +220,6 @@ router.put('/entries/', async function(req, res, next) {
   };
 
   try {
-    console.log('about to get_product_data');
     // check codes
     await catalog_utils.get_product_data(infinity_code, 'infinity', data);
     // console.log('data:', data);
@@ -240,7 +235,7 @@ router.put('/entries/', async function(req, res, next) {
 
   if (!data['n_items']) {
       data['n_items'] = 1;
-      data['n_items'] = data['item_size'];
+      // data['n_items'] = data['item_size'];
   }
 
   catalog_utils.calculate_price(data);
@@ -248,18 +243,14 @@ router.put('/entries/', async function(req, res, next) {
   let result = {};
   try {
     result = await prisma.entry.create({'data': data});
-    console.log('result:', result);
+    return res.json(result);
   } catch (error) {
     console.log('entry create error:', error, data);
     console.log('data:', data);
-    result = {'error': 'entry create error ' + error};
+    return res.json({'error': 'entry create error ' + error});
   }        
 
-  return res.json(result);
 });
-
-
-
 
 
 module.exports = router;
