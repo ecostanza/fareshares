@@ -87,6 +87,7 @@ function do_find_product (code, supplier) {
             // console.log(row);
             found_item = row;
             found_item['full description'] = row['product description'].toLowerCase();
+            found_item['brand'] = row['brand'].toLowerCase();
             found_item['is_organic'] = row['organic'] === 'organic';
             found_item['add_vat'] = row['Vat Marker'] === 'V';
             found_item['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
@@ -103,7 +104,7 @@ function do_find_product (code, supplier) {
             found_item['full description'] = row['PLDESC'].toLowerCase() + ' ' + row['PLTEXT'].toLowerCase();
             found_item['is_organic'] = row['O'] === 'O';
             found_item['add_vat'] = row[' VAT'] === '1';
-            found_item['brand'] = row['BRAND'];
+            found_item['brand'] = row['BRAND'].toLowerCase();
             found_item['pack size'] = row['SIZE'].toLowerCase().replace(/\s/g, '');
             const matches = [...found_item['pack size'].matchAll(/(\d+)\s?x\s?([.\d]+)(\w*)/g)][0];
             // console.log('matches:', matches);
@@ -249,7 +250,7 @@ function do_find_matches (product_details, supplier) {
                 'organic_match': false
             };
             
-            row['brand'] = row['BRAND'];
+            row['brand'] = row['BRAND'].toLowerCase();
             row['pack size'] = row['SIZE'].toLowerCase().replace(/\s/g, '');
 
             console.log("infinity_item['clean size']", infinity_item['clean size']);
