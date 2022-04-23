@@ -26,6 +26,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 document.addEventListener("DOMContentLoaded", function() { 
     console.log('loaded');
 
+    let _all_entries = [];
+
     function setup_interactive_elements () {
         // save changes on select changed
         d3.selectAll('select.preferred_supplier').on('change', async function () {
@@ -90,6 +92,46 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    function setup_filters () {
+        function filter_entries () {
+            const brand_value = d3.select('input.brand-filter').node().value;
+            
+            let filtered_entries = _all_entries;
+            if (brand_value.length > 2) {
+                filtered_entries = filtered_entries.filter(function (e) {
+                    return e['brand'].includes(brand_value);
+                });
+            } 
+            const desc_value = d3.select('input.description-filter').node().value;
+            if (desc_value.length > 2) {
+                filtered_entries = filtered_entries.filter(function (e) {
+                    if (!e['suma_desc']) {
+                        return e['infinity_desc'].includes(desc_value);
+                    } else if(!e['infinity_desc']) {
+                        return e['suma_desc'].includes(desc_value);
+                    } else {
+                        const result = (
+                            e['suma_desc'].includes(desc_value) | 
+                            e['infinity_desc'].includes(desc_value)
+                            );
+                        return result;
+                    }
+                });
+            }
+
+            render(filtered_entries);
+        }
+
+        d3.select('input.brand-filter').on('keyup', function () {
+            filter_entries();
+        });
+        
+        d3.select('input.description-filter').on('keyup', function () {
+            filter_entries();
+        });
+
+    }
+
     function field (o) {
         return {
             _key: function () {
@@ -108,15 +150,18 @@ document.addEventListener("DOMContentLoaded", function() {
                     else { return ""; }
                 }
             },
+            interactive_header: function () { 
+                if (o['interactive_header']) {
+                    return o['interactive_header'];
+                } else {
+                    return '&nbsp;';
+                }
+            },
             header: function () { return o['header']}
         };
     };
 
     let fields = [
-        field({
-            key: 'brand',
-            header: 'Brand'
-        }),
         field({
             key: 'infinity',
             header: 'Infinity'
@@ -127,6 +172,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }),
         field({
             key: 'brand',
+            interactive_header: function () {
+                return '<input type="text" class="brand-filter form-control form-control-sm" aria-describedby="brand filter">';
+            }(),
             header: 'Brand'
         }),
         field({
@@ -137,6 +185,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     return e['suma_desc'];
                 }
             },
+            interactive_header: function () {
+                return '<input type="text" class="description-filter form-control form-control-sm" aria-describedby="description filter">';
+            }(),
             header: 'Description'
         }),
         field({
@@ -164,6 +215,26 @@ document.addEventListener("DOMContentLoaded", function() {
         field({
             key: 'vat',
             header: 'Vat'
+        }),
+        field({
+            key: 'price_updatedAt',
+            header: 'Price Updated on',
+            interactive_header: function () {
+                let html = `
+                <select class="form-select-sm updated-filter" aria-label="Updated on select">\n
+                `;
+                for (const option of [
+                {'value': "null", "label": "any time"}, 
+                {'value': "1", "label": "1 w"}, 
+                {'value': "2", "label": "2 w"}, 
+                {'value': "3", "label": "3 w"}, 
+                {'value': "4", "label": "4 w"}] ) {
+                    html += `<option value="${option.value}"\n`;
+                    html += `>${option.label}</option>`;
+                }
+                html += '</select>';
+                return html;
+            }()
         }),
         field({
             key: function (e) {
@@ -241,10 +312,23 @@ document.addEventListener("DOMContentLoaded", function() {
         return html;
     });
 
-    function render (data) {
+    // d3.select('thead')
+    //     .append('tr')
+    //     .html(function () {
+    //         let html = '';
+    //         for (const i of fields) {
+    //             html += `<td>${i.interactive_header()}</td>`
+    //         }
+    //         return html;
+    //     });
+    
+    function render (entries) {
+        d3.select('tbody')
+        .selectAll('tr').remove();
+
         d3.select('tbody')
         .selectAll('tr')
-        .data(data)
+        .data(entries)
         .enter()
         .append('tr')
         .attr('class', 'entry')
@@ -262,6 +346,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if (interactive === true) {
             setup_interactive_elements();
         }
+
+        setup_filters();
     
     }
 
@@ -272,8 +358,9 @@ document.addEventListener("DOMContentLoaded", function() {
             const data = await d3.json(url, {
                 method: 'GET', 
                 headers: { "Content-Type": "application/json" }
-            });    
-            render(data);
+            });
+            _all_entries = data;
+            render(_all_entries);
         } catch (error) {
             console.log('error', error);
         }
