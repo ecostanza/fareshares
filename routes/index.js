@@ -39,8 +39,8 @@ async function render_pricelist(interactive, req, res, next) {
   res.render('index.html', { 
     'title': 'Pricelist',
     'interactive': interactive,
-    'nav_url': '/manage_pricelist',
-    'entries': entries
+    'nav_url': '/manage_pricelist'//,
+    //'entries': entries
   });
 }
 
@@ -169,8 +169,22 @@ router.post('/entries/:entry_id', async function (req, res) {
   }
 });
 
-// TODO: change to PUT and /entries/
-// and add POST /entries/:entry_id for editing
+router.get('/entries', async function (req, res, next) {
+  try {
+    let entries = await prisma.entry.findMany({
+      'include': {
+        'category': true,
+      },
+    });
+    // console.log('entries', entries);
+    res.json(entries);
+  } catch (error) {
+    console.log('category error:', error);
+    res.json(error);
+  }
+
+});
+
 router.put('/entries/', async function(req, res, next) {
   // res.render('index', { title: 'Express' });
   // console.log(req.body);

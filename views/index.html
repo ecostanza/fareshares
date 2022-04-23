@@ -49,90 +49,20 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </div>
 
       <table class="table">
-        <thead>
-        <td>Category</td>
-        <td>Infinity</td>
-        <td>Suma</td>
-        <td>Brand</td>
-        <td>Description</td>
-        <td>Organic</td>
-        <td>Pack Size</td>
-        <td>Infinity Price</td>
-        <td>Suma Price</td>
-        <td>Pref. Supplier</td>
-        <td>VAT</td>
-        <td>Prev Fareshares Price</td>
-        <td><b>Fareshares Price</b></td>
-        {% if interactive %}
-        <td>&nbsp;</td>
-        {% endif %}
-        </thead>
-
-      {% for e in entries %}
-        <tr data-dbid="{{ e.id }}" class="entry">
-        <td>{{ e.category.name }}</td>
-        <td>{{ e.infinity }}</td>
-        <td>{{ e.suma }}</td>
-        <td>{{ e.brand }}</td>
-        <td>
-        {% if e.infinity_desc %}
-        {{ e.infinity_desc }}
-        {% else %}
-        {{ e.suma_desc }}
-        {% endif %}
-        </td>
-        <td>
-        {{ e.organic }}
-        </td>
-        <td>
-        {{ e.n_items }} x {{ e.item_size }} {{ e.item_unit }}
-        </td>
-        <td>
-        {{ e.infinity_price }}
-        </td>
-        <td>
-        {{ e.suma_price }}
-        </td>
-        <td class="preferred_supplier">
-        {% if interactive %}
-        <select class="form-select-sm preferred_supplier" aria-label="Default select example">
-        {% for option in [
-          {'value': "null", "label": ""}, 
-          {'value': "suma", "label": "Suma"}, 
-          {'value': "infinity", "label": "Infinity"}] %}
-            <option value="{{ option.value }}"
-            {% if option.value === e.preferred_supplier %}
-            selected
-            {% endif %}
-            >
-            {{ option.label }}
-            </option>
-        {% endfor %}
-        </select>
-        {% else %}
-        {{ e.preferred_supplier | replace("null", "")}}
-        {% endif %}
-        </td>
-        <td>
-        {{ e.vat }}
-        </td>
-        <td>
-        {{ e.prev_fareshares_price.toFixed(2) if e.prev_fareshares_price else "" }}
-        </td>
-        <td class="fareshares_price">
-        <b>{{ e.fareshares_price.toFixed(2) }}</b>
-        </td>
-        </tr>
-      {% endfor %}
+      <thead>
+      </thead>
+      <tbody>
+      </tbody>
       </table>
 
 {% endblock %}
 
 
 {% block js %}
-    {% if interactive %}
     <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
     <script type="text/javascript" src="/static/js/index.js"></script>
-    {% endif %}
+    <script type="text/javascript">
+    const interactive = {{ interactive }};
+    </script>
 
 {% endblock %}
