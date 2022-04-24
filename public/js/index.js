@@ -163,6 +163,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let fields = [
         field({
+            key: function (e) {return e['category']['name'];},
+            header: 'Category'
+        }),
+        field({
             key: 'infinity',
             header: 'Infinity'
         }),
