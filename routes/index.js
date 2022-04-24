@@ -175,9 +175,14 @@ router.get('/entries', async function (req, res, next) {
       'include': {
         'category': true,
       },
+      'orderBy': {
+        'category': {
+          'sort_order': 'asc'
+        }
+      }
     });
     // console.log('entries', entries);
-    res.json(entries);
+    return res.json(entries);
   } catch (error) {
     console.log('category error:', error);
     res.json(error);
