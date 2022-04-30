@@ -95,14 +95,28 @@ document.addEventListener("DOMContentLoaded", function() {
     function setup_filters () {
         function filter_entries () {
             const brand_value = d3.select('input.brand-filter').node().value;
+            const desc_value = d3.select('input.description-filter').node().value;
+            const vat_value_str = d3.select('select.vat-filter').node().value;
+            let vat_value = null;
+            if (vat_value_str === 'true') {
+                vat_value = true;
+            } else if (vat_value_str === 'false') {
+                vat_value = false;
+            }
+            const update_value_str = d3.select('select.updated-filter').node().value;
+            const updated_weeks = parseInt(update_value_str);
+            
+            // let updated = false;
             
             let filtered_entries = _all_entries;
+
             if (brand_value.length > 2) {
                 filtered_entries = filtered_entries.filter(function (e) {
                     return e['brand'].includes(brand_value);
                 });
+                // updated = true;
             } 
-            const desc_value = d3.select('input.description-filter').node().value;
+
             if (desc_value.length > 2) {
                 filtered_entries = filtered_entries.filter(function (e) {
                     if (!e['suma_desc']) {
@@ -117,7 +131,31 @@ document.addEventListener("DOMContentLoaded", function() {
                         return result;
                     }
                 });
+                // updated = true;
             }
+
+            if (vat_value !== null) {
+                filtered_entries = filtered_entries.filter(function (e) {
+                   return e['vat'] === vat_value;
+                });
+                // updated = true;
+            }
+
+            const now = luxon.DateTime.now();
+            if (!isNaN(updated_weeks)) {
+                // filter by price_updatedAt
+                filtered_entries = filtered_entries.filter(function (e) {
+                    if (e['price_updatedAt'] !== null) {
+                        // console.log(e['price_updatedAt'], now);
+                        // console.log('interval:', luxon.Interval.fromDateTimes(e['price_updatedAt'], now));
+                        const delta = luxon.Interval.fromDateTimes(e['price_updatedAt'], now).length('weeks');
+                        return delta > updated_weeks;
+                    } else {
+                        return false;
+                    }
+                 });
+                //  updated = true;
+             }
 
             render(filtered_entries);
         }
@@ -129,7 +167,14 @@ document.addEventListener("DOMContentLoaded", function() {
         d3.select('input.description-filter').on('keyup', function () {
             filter_entries();
         });
+        
+        d3.select('select.vat-filter').on('change', function () {
+            filter_entries();
+        });
 
+        d3.select('select.updated-filter').on('change', function () {
+            filter_entries();
+        });
     }
 
     function field (o) {
@@ -162,10 +207,10 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     let fields = [
-        field({
-            key: function (e) {return e['category']['name'];},
-            header: 'Category'
-        }),
+        // field({
+        //     key: function (e) {return e['category']['name'];},
+        //     header: 'Category'
+        // }),
         field({
             key: 'infinity',
             header: 'Infinity'
@@ -217,18 +262,79 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Suma Price'
         }),
         field({
-            key: 'vat',
-            header: 'Vat'
+            key: function (e) {
+                if (interactive === true) {
+                    if (!e['suma']) {
+                        return 'Infinity';
+                    } else if (!e['infinity']) {
+                        return 'Suma';
+                    } else {
+                        let html = `
+                        <select class="form-select-sm preferred_supplier" aria-label="Preferred supplier select">\n
+                        `;
+                        for (const option of [
+                        {'value': "null", "label": ""}, 
+                        {'value': "suma", "label": "Suma"}, 
+                        {'value': "infinity", "label": "Infinity"}] ) {
+                            html += `<option value="${option.value}"\n`;
+                            if (option.value === e.preferred_supplier ) {
+                                html += 'selected';
+                            }
+                            html += `>${option.label}</option>`;
+                        }
+                        html += '</select>';
+                        return html;
+                    }
+                } else {
+                    if (!e['suma']) {
+                        return 'Infinity';
+                    } else if (!e['infinity']) {
+                        return 'Suma';
+                    } else {
+                        if (e.preferred_supplier === null) {
+                            return '';
+                        }
+                        return e.preferred_supplier;
+                    }
+                }
+            },
+            header: 'Pref. Supplier'
         }),
         field({
-            key: 'price_updatedAt',
+            key: 'vat',
+            header: 'Vat',
+            interactive_header: function () {
+                let html = `
+                <select class="form-select-sm vat-filter" aria-label="Updated on select">\n
+                `;
+                for (const option of [
+                {'value': "any", "label": "any"}, 
+                {'value': "true", "label": "yes"}, 
+                {'value': "false", "label": "no"}] ) {
+                    html += `<option value="${option.value}"\n`;
+                    html += `>${option.label}</option>`;
+                }
+                html += '</select>';
+                return html;
+            }()
+        }),
+        field({
+            // TODO: render date better
+            key: function (e) {
+                if (e['price_updatedAt'] !== null) {
+                    return e['price_updatedAt'].toFormat('dd LLL yyyy');
+                } else {
+                    return '';
+                }
+            },
             header: 'Price Updated on',
             interactive_header: function () {
                 let html = `
                 <select class="form-select-sm updated-filter" aria-label="Updated on select">\n
                 `;
                 for (const option of [
-                {'value': "null", "label": "any time"}, 
+                {'value': "null", "label": ""}, 
+                {'value': "0", "label": "ever"},
                 {'value': "1", "label": "1 w"}, 
                 {'value': "2", "label": "2 w"}, 
                 {'value': "3", "label": "3 w"}, 
@@ -264,33 +370,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (interactive === true) {
         // insert preferred supplier after suma price
-        const idx = fields.findIndex(function (i) {console.log(i._key);return i._key === 'suma_price';});
-        fields.splice(idx + 1, 0, field({
-            key: function (e) {
-                if (!e['suma']) {
-                    return 'Infinity';
-                } else if (!e['infinity']) {
-                    return 'Suma';
-                } else {
-                    let html = `
-                    <select class="form-select-sm preferred_supplier" aria-label="Preferred supplier select">\n
-                    `;
-                    for (const option of [
-                    {'value': "null", "label": ""}, 
-                    {'value': "suma", "label": "Suma"}, 
-                    {'value': "infinity", "label": "Infinity"}] ) {
-                        html += `<option value="${option.value}"\n`;
-                        if (option.value === e.preferred_supplier ) {
-                            html += 'selected';
-                        }
-                        html += `>${option.label}</option>`;
-                    }
-                    html += '</select>';
-                    return html;
-                }
-            },
-            header: 'Pref. Supplier'
-        }));
+        // const idx = fields.findIndex(function (i) {console.log(i._key);return i._key === 'suma_price';});
 
         // delete button
         fields.push(field({
@@ -316,35 +396,49 @@ document.addEventListener("DOMContentLoaded", function() {
         return html;
     });
 
-    // d3.select('thead')
-    //     .append('tr')
-    //     .html(function () {
-    //         let html = '';
-    //         for (const i of fields) {
-    //             html += `<td>${i.interactive_header()}</td>`
-    //         }
-    //         return html;
-    //     });
-    
-    function render (entries) {
-        d3.select('tbody')
-        .selectAll('tr').remove();
-
-        d3.select('tbody')
-        .selectAll('tr')
-        .data(entries)
-        .enter()
+    d3.select('thead')
         .append('tr')
-        .attr('class', 'entry')
-        .attr('data-dbid', function (d) { return d.id; })
-        .html(function (d) {
-            // console.log(d);
+        .html(function () {
             let html = '';
             for (const i of fields) {
-                html += `<td>${i.key(d)}</td>`
-                // console.log(i.header(), i.key(d));
+                html += `<td>${i.interactive_header()}</td>`
             }
             return html;
+        });
+    
+    function render (entries) {
+        // console.log(entries);
+        d3.select('tbody')
+            .selectAll('tr').remove();
+
+        const groups = d3.group(entries, d => d.category.name);
+        // console.log(groups);
+
+        groups.forEach(function (g, cat) {
+            console.log(g, cat);
+            d3.select('tbody')
+                .append('tr')
+                .append('td')
+                .attr('colspan', fields.length)
+                .attr('class', 'category')
+                .html(cat);
+
+            d3.select('tbody')
+                .selectAll(null)
+                .data(g)
+                .enter()
+                .append('tr')
+                .attr('class', 'entry')
+                .attr('data-dbid', function (d) { return d.id; })
+                .html(function (d) {
+                    // console.log(d);
+                    let html = '';
+                    for (const i of fields) {
+                        html += `<td>${i.key(d)}</td>`
+                        // console.log(i.header(), i.key(d));
+                    }
+                    return html;
+                });
         });
 
         if (interactive === true) {
@@ -363,7 +457,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 method: 'GET', 
                 headers: { "Content-Type": "application/json" }
             });
-            _all_entries = data;
+            _all_entries = data.map(function (e) {
+                // console.log(e['price_updatedAt']);
+                if (e['price_updatedAt'] !== null) {
+                    e['price_updatedAt'] = luxon.DateTime.fromISO(e['price_updatedAt']);
+                }
+                return e;
+            });
             render(_all_entries);
         } catch (error) {
             console.log('error', error);
