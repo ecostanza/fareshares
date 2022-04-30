@@ -113,13 +113,14 @@ async function run () {
     // rename catalogues (if there)
     rename_catalogue('suma');
     rename_catalogue('infinity');
+    console.log('renamed catalogues');
 
     const entries = await prisma.entry.findMany({
         'where': {}
     });
     let counter = 0;
     for (const e of entries) {
-        // console.log(e);
+        console.log(`processing ${e['id']}`);
         let suma_price = null;
         let infinity_price = null;
         if (e.suma) {
