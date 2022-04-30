@@ -21,6 +21,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 const fs = require('fs');
 // const process = require('process');
 var catalog_utils = require('./catalog_utils');
+const { DateTime } = require('luxon');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient()
 
@@ -97,7 +98,22 @@ const process_entry = async function (entry) {
     //process.exit(1);
 };
 
+function rename_catalogue (supplier) {
+    const fname = `${supplier}_catalogue.csv`;
+    const now = DateTime.now();
+    const new_name = fname.replace('.csv', `_${now.toFormat('yyyyLLdd')}.csv`);
+    fs.rename(fname, new_name, function (error) {
+        if (error !== null) {
+            console.log('rename error', error);
+        }
+    });
+}
+
 async function run () {
+    // rename catalogues (if there)
+    rename_catalogue('suma');
+    rename_catalogue('infinity');
+
     const entries = await prisma.entry.findMany({
         'where': {}
     });
@@ -107,17 +123,50 @@ async function run () {
         let suma_price = null;
         let infinity_price = null;
         if (e.suma) {
-            const suma_details = await catalog_utils.find_product(e.suma, 'suma');    
-            suma_price = suma_details['PRICE'];
+            try {
+                const suma_details = await catalog_utils.find_product(e.suma, 'suma');    
+                suma_price = suma_details['PRICE'];
+            } catch (error) {
+                if (error === 'not found') {
+                    e.suma = null;
+                    suma_price = null;
+                    e.suma_price = null;
+                    console.log('not found in Suma:', e);
+                } else {
+                    throw error;
+                }
+            }
         }
         if (e.infinity) {
-            const infinity_details = await catalog_utils.find_product(e.infinity, 'infinity');    
-            infinity_price = infinity_details['Case price'];
+            try {
+                const infinity_details = await catalog_utils.find_product(e.infinity, 'infinity');    
+                infinity_price = infinity_details['Case price'];
+            } catch (error) {
+                if (error === 'not found') {
+                    e.infinity = null;
+                    infinity_price = null;
+                    e.infinity_price = null;
+                    console.log('not found in Infinity:', e);
+                } else {
+                    throw error;
+                }
+            }
+
         }
         // console.log(
         //     'suma_price', suma_price, 'e.suma_price', e.suma_price,
         //     'infinity_price:', infinity_price, 'e.infinity_price:', e.infinity_price
         // )
+        if (suma_price === null & infinity_price === null) {
+            console.log('updating', e.id)
+            const update_result = await prisma.entry.update({
+                'where': {'id': e.id},
+                'data': e
+            });
+            counter = counter + 1;
+            
+            continue;
+        }
         if (suma_price !== e.suma_price | infinity_price !== e.infinity_price) {
             // update price
             e.prev_fareshares_price = e.fareshares_price;
