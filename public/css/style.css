@@ -43,3 +43,19 @@ div#bar {
   height: 10px;
   margin-top: 10px;
 }
+
+td.category {
+  font-weight: bold;
+  height: 4em;
+  vertical-align: bottom;
+}
+
+.spinner-border {
+  margin-top: 5em;
+} 
+
+div.main-loading div {
+  position: absolute !important;
+  top: 10%;
+  left: 40%;
+}
