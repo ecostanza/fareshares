@@ -113,7 +113,7 @@ function do_find_product (code, supplier) {
                 found_item['pk size'] = parseInt(matches[2], 10);
                 found_item['unit'] = matches[3];
             } else {
-                console.log(found_item['pack size']);
+                // console.log(found_item['pack size']);
                 try {
                     const alt_matches = [...found_item['pack size'].matchAll(/([.\d]+)\s?(\w*)/g)][0];
                     found_item['units case'] = 1;
@@ -253,7 +253,7 @@ function do_find_matches (product_details, supplier) {
             row['brand'] = row['BRAND'].toLowerCase();
             row['pack size'] = row['SIZE'].toLowerCase().replace(/\s/g, '');
 
-            console.log("infinity_item['clean size']", infinity_item['clean size']);
+            // console.log("infinity_item['clean size']", infinity_item['clean size']);
 
             if (infinity_item['pack size'] === row['pack size']) {
                 current['size_match'] = true;
@@ -261,8 +261,8 @@ function do_find_matches (product_details, supplier) {
 
             row['is_organic'] = row['full description'].includes('organic');
             row['code'] = row['PLCDE'];
-            console.log(`row['is_organic']: ${row['is_organic']}`);
-            console.log(`infinity_item['is_organic']: ${infinity_item['is_organic']}\n`);
+            // console.log(`row['is_organic']: ${row['is_organic']}`);
+            // console.log(`infinity_item['is_organic']: ${infinity_item['is_organic']}\n`);
 
             row['full description'].includes('organic')
 
@@ -294,8 +294,8 @@ function do_find_matches (product_details, supplier) {
             }
             row['is_organic'] = row['organic'] === 'organic';
             row['code'] = row['Product code'];
-            console.log(`row['is_organic']: ${row['is_organic']}`);
-            console.log(`suma_item['is_organic']: ${suma_item['is_organic']}\n`);
+            // console.log(`row['is_organic']: ${row['is_organic']}`);
+            // console.log(`suma_item['is_organic']: ${suma_item['is_organic']}\n`);
             if (row['is_organic'] === suma_item['is_organic']) {
                 current['organic_match'] = true;
             }
@@ -310,7 +310,7 @@ function do_find_matches (product_details, supplier) {
         }
     };
 
-    console.log('product_details:', product_details);
+    // console.log('product_details:', product_details);
 
     let find_matches = function (row) { find_infinity_matches(row, product_details); };
     let filename = 'infinity_catalogue.csv';
@@ -328,12 +328,12 @@ function do_find_matches (product_details, supplier) {
             })
             .on('data', find_matches)
             .on('end', function (row_count) {
-                console.log(`Parsed ${row_count} rows`);
-                console.log(`${matches.length} matches on brand`);
+                // console.log(`Parsed ${row_count} rows`);
+                // console.log(`${matches.length} matches on brand`);
                 matches = matches.filter(function (item) {
                     return item.organic_match === true && item.size_match === true;});
                 matches.sort(function (a, b) {return a['distance'] - b['distance'];});
-                console.log(`${matches.length} closer matches`);
+                // console.log(`${matches.length} closer matches`);
                 // console.log(`target: ${item['product description']} \n`);
                 // matches.forEach(element => {
                 //     console.log(element['item']['full description']);
