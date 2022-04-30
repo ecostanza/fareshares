@@ -102,14 +102,17 @@ function rename_catalogue (supplier) {
     const fname = `${supplier}_catalogue.csv`;
     const now = DateTime.now();
     const new_name = fname.replace('.csv', `_${now.toFormat('yyyyLLdd')}.csv`);
-    fs.rename(fname, new_name, function (error) {
-        if (error !== null) {
-            console.log('rename error', error);
-        }
-    });
+    if (fs.existsSync(fname)) {
+        fs.rename(fname, new_name, function (error) {
+            if (error !== null) {
+                console.log('rename error', error);
+            }
+        });
+    }
 }
 
 async function run () {
+    console.log('starting..');
     // rename catalogues (if there)
     rename_catalogue('suma');
     rename_catalogue('infinity');
