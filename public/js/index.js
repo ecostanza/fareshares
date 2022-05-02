@@ -597,7 +597,9 @@ document.addEventListener("DOMContentLoaded", function() {
             } catch (error) {
                 console.log(error);
             }
-            return false;
+            return false; 
+        } else {
+            return true;
         }
     });
 
