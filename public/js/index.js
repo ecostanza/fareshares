@@ -26,6 +26,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 document.addEventListener("DOMContentLoaded", function() { 
     console.log('loaded');
 
+    let _settings = {};
+    const settings_str = window.localStorage.getItem('settings');
+    if (settings_str !== null) {
+        _settings = JSON.parse(settings_str);
+    }
+    console.log('_settings', _settings);
     let _all_entries = [];
 
     function setup_interactive_elements () {
@@ -94,68 +100,68 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function setup_filters () {
         function filter_entries () {
-            const brand_value = d3.select('input.brand-filter').node().value;
-            const desc_value = d3.select('input.description-filter').node().value;
-            const vat_value_str = d3.select('select.vat-filter').node().value;
-            let vat_value = null;
-            if (vat_value_str === 'true') {
-                vat_value = true;
-            } else if (vat_value_str === 'false') {
-                vat_value = false;
-            }
-            const update_value_str = d3.select('select.updated-filter').node().value;
-            const updated_weeks = parseInt(update_value_str);
-            
-            // let updated = false;
-            
+            // reset
             let filtered_entries = _all_entries;
 
-            if (brand_value.length > 2) {
-                filtered_entries = filtered_entries.filter(function (e) {
-                    return e['brand'].includes(brand_value);
-                });
-                // updated = true;
-            } 
-
-            if (desc_value.length > 2) {
-                filtered_entries = filtered_entries.filter(function (e) {
-                    if (!e['suma_desc']) {
-                        return e['infinity_desc'].includes(desc_value);
-                    } else if(!e['infinity_desc']) {
-                        return e['suma_desc'].includes(desc_value);
-                    } else {
-                        const result = (
-                            e['suma_desc'].includes(desc_value) | 
-                            e['infinity_desc'].includes(desc_value)
-                            );
-                        return result;
-                    }
-                });
-                // updated = true;
+            if (_selected_fields.map(f => f.key).includes('brand')) {
+                const brand_value = d3.select('input.brand-filter').node().value;
+                if (brand_value.length > 2) {
+                    filtered_entries = filtered_entries.filter(function (e) {
+                        return e['brand'].includes(brand_value);
+                    });
+                }    
             }
 
-            if (vat_value !== null) {
-                filtered_entries = filtered_entries.filter(function (e) {
-                   return e['vat'] === vat_value;
-                });
-                // updated = true;
+            if (_selected_fields.map(f => f.key).includes('desc')) {
+                const desc_value = d3.select('input.description-filter').node().value;
+                if (desc_value.length > 2) {
+                    filtered_entries = filtered_entries.filter(function (e) {
+                        if (!e['suma_desc']) {
+                            return e['infinity_desc'].includes(desc_value);
+                        } else if(!e['infinity_desc']) {
+                            return e['suma_desc'].includes(desc_value);
+                        } else {
+                            const result = (
+                                e['suma_desc'].includes(desc_value) | 
+                                e['infinity_desc'].includes(desc_value)
+                                );
+                            return result;
+                        }
+                    });
+                }
             }
 
-            const now = luxon.DateTime.now();
-            if (!isNaN(updated_weeks)) {
-                // filter by price_updatedAt
-                filtered_entries = filtered_entries.filter(function (e) {
-                    if (e['price_updatedAt'] !== null) {
-                        // console.log(e['price_updatedAt'], now);
-                        // console.log('interval:', luxon.Interval.fromDateTimes(e['price_updatedAt'], now));
-                        const delta = luxon.Interval.fromDateTimes(e['price_updatedAt'], now).length('weeks');
-                        return delta > updated_weeks;
-                    } else {
-                        return false;
-                    }
-                 });
-                //  updated = true;
-             }
+            if (_selected_fields.map(f => f.key).includes('vat')) {
+                const vat_value_str = d3.select('select.vat-filter').node().value;
+                let vat_value = null;
+                if (vat_value_str === 'true') {
+                    vat_value = true;
+                } else if (vat_value_str === 'false') {
+                    vat_value = false;
+                }
+                if (vat_value !== null) {
+                    filtered_entries = filtered_entries.filter(function (e) {
+                    return e['vat'] === vat_value;
+                    });
+                }
+            }
+
+            if (_selected_fields.map(f => f.key).includes('price_updatedAt')) {
+                const update_value_str = d3.select('select.updated-filter').node().value;
+                const updated_weeks = parseInt(update_value_str);
+                const now = luxon.DateTime.now();
+                if (!isNaN(updated_weeks)) {
+                    // filter by price_updatedAt
+                    filtered_entries = filtered_entries.filter(function (e) {
+                        if (e['price_updatedAt'] !== null) {
+                            const delta = luxon.Interval.fromDateTimes(e['price_updatedAt'], now).length('weeks');
+                            return delta > updated_weeks;
+                        } else {
+                            return false;
+                        }
+                    });
+                }
+            }
 
             render(filtered_entries);
         }
@@ -186,10 +192,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     return o['key'];
                 }
             }(), 
-            key: function (e) { 
-                if (typeof o['key'] === "function") {
+            key: o['key'], 
+            'value': function (e) { 
+                if (typeof o['value'] === "function") {
                     // console.log('o', o);
-                    return o['key'](e);
+                    return o['value'](e);
                 } else {
                     if (e[o['key']]) { return e[o['key']]; }
                     else { return ""; }
@@ -206,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     };
 
-    let fields = [
+    let _all_fields = [
         // field({
         //     key: function (e) {return e['category']['name'];},
         //     header: 'Category'
@@ -227,7 +234,8 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Brand'
         }),
         field({
-            key: function (e) {
+            key: 'desc',
+            value: function (e) {
                 if (e.infinity_desc) {
                     return e['infinity_desc'];
                 } else {
@@ -244,7 +252,8 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Organic'
         }),
         field({
-            key: function (e) {
+            key: 'size',
+            value: function (e) {
                 if (e.n_items > 1) {
                     return `${e.n_items} x ${e.item_size}${e.item_unit}`;
                 } else {
@@ -262,7 +271,19 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Suma Price'
         }),
         field({
-            key: function (e) {
+            key: 'suma_infinity_diff',
+            value: function (e) {
+                if (e['suma_price'] && e['infinity_price']) {
+                    return Math.abs(e['suma_price'] - e['infinity_price']).toFixed(2);
+                } else {
+                    return '';
+                }
+            },
+            header: 'Suma - Infinity Difference'
+        }),
+        field({
+            key: 'preferred_supplier',
+            value: function (e) {
                 if (interactive === true) {
                     if (!e['suma']) {
                         return 'Infinity';
@@ -320,15 +341,16 @@ document.addEventListener("DOMContentLoaded", function() {
         }),
         field({
             // TODO: render date better
-            key: function (e) {
+            'key': 'price_updatedAt',
+            'value': function (e) {
                 if (e['price_updatedAt'] !== null) {
                     return e['price_updatedAt'].toFormat('dd LLL yyyy');
                 } else {
                     return '';
                 }
             },
-            header: 'Price Updated on',
-            interactive_header: function () {
+            'header': 'Price Updated on',
+            'interactive_header': function () {
                 let html = `
                 <select class="form-select-sm updated-filter" aria-label="Updated on select">\n
                 `;
@@ -347,24 +369,26 @@ document.addEventListener("DOMContentLoaded", function() {
             }()
         }),
         field({
-            key: function (e) {
+            'key': 'prev_fareshares_price',
+            'value': function (e) {
                 if (e['prev_fareshares_price']) {
                     return e['prev_fareshares_price'].toFixed(2);
                 } else {
                     return "";
                 }
             },
-            header: 'Prev. Fareshares Price'
+            'header': 'Prev. Fareshares Price'
         }),
         field({
-            key: function (e) {
+            'key': 'fareshares_price',
+            'value': function (e) {
                 if (e['fareshares_price']) {
                     return `<span class="fareshares_price"><b>${e['fareshares_price'].toFixed(2)}</b></span>`;
                 } else {
                     return "";
                 }
             },
-            header: '<b>Fareshares Price</b>'
+            'header': '<b>Fareshares Price</b>'
         }),
     ];
 
@@ -373,8 +397,9 @@ document.addEventListener("DOMContentLoaded", function() {
         // const idx = fields.findIndex(function (i) {console.log(i._key);return i._key === 'suma_price';});
 
         // delete button
-        fields.push(field({
-            key: function (e) {
+        _all_fields.push(field({
+            'key': 'delete_button',
+            'value': function (e) {
                 let html = `
                 <button class="btn btn-danger btn-sm" type="button">
                 Del.
@@ -382,29 +407,124 @@ document.addEventListener("DOMContentLoaded", function() {
                 `;
                 return html;
             },
-            header: '&nbsp;'
+            'header': '&nbsp;'
         }));
     }
 
-    d3.select('thead')
-    .append('tr')
-    .html(function () {
-        let html = '';
-        for (const i of fields) {
-            html += `<td>${i.header()}</td>`
+    d3.select('button#settingsButton').on('click', function () {
+        const modal = new bootstrap.Modal(
+            document.getElementById('settingsModal'), {backdrop: 'static'});
+        modal.show();
+
+        d3.select('button#saveSettingsButton').on('click', async function (event) {
+            console.log('saveSettingsButton');
+            // apply settings
+            const checked = d3.select('div#settingsModal .modal-body ul').selectAll("input.form-check-input:checked");
+            // console.log(checked);
+            let cols = [];
+            checked.each(function () {
+                const id_str = d3.select(this).attr('id');
+                const key = id_str.split('-')[1];
+                cols.push(key);
+            });
+            console.log('cols:', cols);
+            _selected_fields = _all_fields.filter(function (f) {
+                return cols.includes(f.key);
+            })
+            console.log('_selected_fields:', _selected_fields.map(f => f.key));
+            render_header();
+            render(_all_entries);
+            
+            // save settings
+            _settings['fields'] = function () {
+                    let result = {};
+                    _all_fields.forEach(function(f) {result[f.key] = {'show': false}});
+                    _selected_fields.forEach(function(f) {result[f.key] = {'show': true}});
+                    console.log('result', result);
+                    return result;
+                }();
+            console.log('_settings', _settings);
+            window.localStorage.setItem('settings', JSON.stringify(_settings))
+
+            modal.hide();
+        });
+
+        function on_dismissed (event) {
+            console.log('cancelSettingsButton');
+            modal.hide();
+            console.log('cancel');
+            // TODO: reset settings
+            const lis = d3.select('div#settingsModal .modal-body ul').selectAll("input.form-check-input");
+            lis.property('checked', false);
+            _selected_fields.forEach(function (f) {
+                d3.select(`input#dropdownCheck-${f.key}`).property('checked',true);
+            });
         }
-        return html;
+
+        d3.select('button#cancelSettingsButton').on('click', on_dismissed);
+        document.getElementById('settingsModal').addEventListener('hidden.bs.modal', on_dismissed);
     });
 
-    d3.select('thead')
-        .append('tr')
-        .html(function () {
-            let html = '';
-            for (const i of fields) {
-                html += `<td>${i.interactive_header()}</td>`
+    
+    d3.select('div#settingsModal .modal-body ul')
+        .selectAll(null)
+        .data(_all_fields)
+        .enter()
+        .append('li')
+        // .append('a')
+        .attr('class', "list-group-item")
+        .html(function (d, i) {
+            // return `<div class="mb-3">
+            let checked = 'checked';
+            if (_settings['fields'] !== undefined) {
+                const fields = _settings['fields'];
+                console.log(d.key, fields[d.key]);
+                try {
+                    if (fields[d.key]['show'] === false) {
+                        checked = '';
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
             }
-            return html;
+            return `<div>
+            <input type="checkbox" class="form-check-input" id="dropdownCheck-${d.key}" ${checked}>
+            <label class="form-check-label" for="dropdownCheck-${i}">
+              ${d.header()}
+            </label>
+          </div>`;
         });
+    
+
+    // <li><a class="dropdown-item" href="#">Action</a></li>
+    // <li><a class="dropdown-item" href="#">Another action</a></li>
+    // <li><a class="dropdown-item" href="#">Something else here</a></li>
+
+    function render_header() {
+        d3.select('thead').selectAll('*').remove();
+
+        d3.select('thead')
+            .append('tr')
+            .html(function () {
+                let html = '';
+                for (const i of _selected_fields) {
+                    html += `<td>${i.header()}</td>`
+                }
+                return html;
+            });
+
+        d3.select('thead')
+            .append('tr')
+            .html(function () {
+                let html = '';
+                for (const i of _selected_fields) {
+                    html += `<td>${i.interactive_header()}</td>`
+                }
+                return html;
+            });
+    
+    }
+
     
     function render (entries) {
         // console.log(entries);
@@ -415,11 +535,11 @@ document.addEventListener("DOMContentLoaded", function() {
         // console.log(groups);
 
         groups.forEach(function (g, cat) {
-            console.log(g, cat);
+            // console.log(g, cat);
             d3.select('tbody')
                 .append('tr')
                 .append('td')
-                .attr('colspan', fields.length)
+                .attr('colspan', _selected_fields.length)
                 .attr('class', 'category')
                 .html(cat);
 
@@ -433,8 +553,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 .html(function (d) {
                     // console.log(d);
                     let html = '';
-                    for (const i of fields) {
-                        html += `<td>${i.key(d)}</td>`
+                    for (const i of _selected_fields) {
+                        html += `<td>${i.value(d)}</td>`
                         // console.log(i.header(), i.key(d));
                     }
                     return html;
@@ -448,6 +568,20 @@ document.addEventListener("DOMContentLoaded", function() {
         setup_filters();
     
     }
+
+    let _selected_fields = _all_fields.filter(function (f) {
+        if (_settings['fields'] !== undefined) {
+            const fields = _settings['fields'];
+            try {
+                if (fields[f.key]['show']) {
+                    return true;
+                }
+            } catch (error) {
+                console.log(error);
+            }
+            return false;
+        }
+    });
 
     async function load_data () {
         const url = '/entries';
@@ -464,6 +598,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 return e;
             });
+            render_header();
             render(_all_entries);
         } catch (error) {
             console.log('error', error);
