@@ -64,7 +64,9 @@ document.addEventListener("DOMContentLoaded", function() {
         //     .attr('type', 'button')
         //     .text('Del.');
 
-        d3.selectAll('button').on('click', function (event) {
+        d3.selectAll('tr.entry')
+          .selectAll('button')
+          .on('click', function (event) {
             const tr = d3.select(this.parentNode.parentNode);
             const db_id = tr.attr('data-dbid');
             console.log(db_id); 
@@ -407,7 +409,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 `;
                 return html;
             },
-            'header': '&nbsp;'
+            'header': 'Delete'
         }));
     }
 
