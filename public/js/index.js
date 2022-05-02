@@ -382,6 +382,22 @@ document.addEventListener("DOMContentLoaded", function() {
             'header': 'Prev. Fareshares Price'
         }),
         field({
+            key: 'price_diff',
+            value: function (e) {
+                if (e['fareshares_price'] && e['prev_fareshares_price']) {
+                    const diff = e['fareshares_price'] - e['prev_fareshares_price'];
+                    let span = `<span style="color: gray">${diff.toFixed(2)}</span>`;
+                    if (e['fareshares_price'] > e['prev_fareshares_price']) {
+                        span = `<span style="color: red">${diff.toFixed(2)}</span>`;
+                    } 
+                    return span;
+                } else {
+                    return '';
+                }
+            },
+            header: 'Price difference'
+        }),
+        field({
             'key': 'fareshares_price',
             'value': function (e) {
                 if (e['fareshares_price']) {
