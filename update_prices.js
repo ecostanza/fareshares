@@ -21,6 +21,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 const fs = require('fs');
 // const process = require('process');
 var catalog_utils = require('./catalog_utils');
+var mail_utils = require('./mail_utils');
 const { DateTime } = require('luxon');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient()
@@ -118,12 +119,17 @@ async function run () {
     rename_catalogue('infinity');
     console.log('renamed catalogues');
 
+    let html_report = '<b>Pricelist Update Report</b><br>\n\r';
+    html_report += '<ul>';
+
     const entries = await prisma.entry.findMany({
         'where': {}
     });
     let counter = 0;
+    let update_counter = 0;
     for (const e of entries) {
-        console.log(`processing ${e['id']}`);
+        // console.log();
+        process.stdout.write(`processing ${e['id']} (${(100*counter/entries.length).toFixed(0)}%)\r`);
         let suma_price = null;
         let infinity_price = null;
         if (e.suma) {
@@ -136,8 +142,9 @@ async function run () {
                     suma_price = null;
                     e.suma_price = null;
                     console.log('not found in Suma:', e);
+                    html_report += `<li>item #${e.id} not found in Suma catalogue ("${e.suma_desc}")</li>`;
                 } else {
-                    throw error;
+                    console.log(error);
                 }
             }
         }
@@ -151,8 +158,9 @@ async function run () {
                     infinity_price = null;
                     e.infinity_price = null;
                     console.log('not found in Infinity:', e);
+                    html_report += `<li>item #${e.id} not found in Infinity catalogue ("${e.infinity_desc}")</li>`;
                 } else {
-                    throw error;
+                    console.log(error);
                 }
             }
 
@@ -163,11 +171,14 @@ async function run () {
         // )
         if (suma_price === null & infinity_price === null) {
             console.log('updating', e.id)
+            html_report += `<li>item #${e.id} not found in either catalogue 
+            (Infinity: "${e.infinity_desc}", Suma: "${e.suma_desc}")</li>`;
             const update_result = await prisma.entry.update({
                 'where': {'id': e.id},
                 'data': e
             });
             counter = counter + 1;
+            update_counter = update_counter + 1;
             
             continue;
         }
@@ -187,16 +198,26 @@ async function run () {
             });
             counter = counter + 1;
             // console.log('update_result:', update_result);
+            let desc = e.suma_desc;
             if (e.infinity) {
-                console.log(`updated ${e.infinity_desc}: ${e.prev_fareshares_price.toFixed(2)} -> ${e.fareshares_price.toFixed(2)}`);
-            } else {
-                console.log(`updated ${e.suma_desc}: ${e.prev_fareshares_price.toFixed(2)} -> ${e.fareshares_price.toFixed(2)}`);
-            }
+                desc = e.infinity_desc;
+            } 
+            const update_msg = `Item ${e.id} ("${desc}") updated: ${e.prev_fareshares_price.toFixed(2)} -> ${e.fareshares_price.toFixed(2)}`;
+            console.log(update_msg);
+            html_report += `<li>${update_msg}</li>`;
             
-            // return;
+            update_counter = update_counter + 1;
         }
+        counter = counter + 1;
     }
-    console.log(`updated ${counter} items out of ${entries.length}`);
+    html_report += '</ul>';
+    html_report += `Updated ${update_counter} items out of ${entries.length}.`;
+    console.log(`updated ${update_counter} items out of ${entries.length}`);
+    //console.log(html_report);
+    let txt_report = html_report.replace(/<\/ul>/g, '\n\r');
+    txt_report = txt_report.replace(/<ul>/g, '- ');
+    txt_report = txt_report.replace(/<br>/g, '\n\r')
+    await mail_utils.send_report(html_report, txt_report);
 }
 
 run();
