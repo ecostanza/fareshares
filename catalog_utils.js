@@ -28,6 +28,7 @@ const { e } = require('nunjucks/src/filters');
 const https = require('https'); // or 'https' for https:// URLs
 
 function download_catalogue(supplier) {
+    //console.log('download_catalogue', supplier);
     let url = 'https://www.infinityfoodswholesale.coop/download/c50f-2a5b-2174-ac03-fd54-92b7-eb55-4717/';
     let filename = "infinity_catalogue.csv";
     if (supplier === 'suma') {
@@ -60,11 +61,14 @@ function download_catalogue(supplier) {
 
 function check_catalogue(supplier) {
     let filename = "infinity_catalogue.csv";
-    if (supplier === 'suma') {
+    if (supplier.toLowerCase() === 'suma') {
         filename = 'suma_catalogue.csv';
     }
+    //console.log('check_catalogue', supplier, filename);
     return new Promise( function (resolve, reject) {
         fs.stat(filename, function(error, stat) {
+            //console.log('stat callback error:', error);
+            //console.log('stat callback stat:', stat, filename);
             if(error === null) {
                 resolve(true);
             } else if(error.code === 'ENOENT') {
@@ -136,6 +140,7 @@ function do_find_product (code, supplier) {
         find_item = function (row) { find_suma_item(row, code.toLowerCase()); };
         filename = 'suma_catalogue.csv';
     }
+    // console.log('do_find_product, filename:', filename);
     return new Promise(function (resolve, reject) {
         fs.createReadStream(filename)
         .pipe(csv.parse({ 'headers': true }))
@@ -158,7 +163,8 @@ function do_find_product (code, supplier) {
 
 async function find_product (code, supplier) {
     let filename = 'infinity_catalogue.csv';
-    if (supplier.toLowerCase() === 'suma') {
+    supplier = supplier.toLowerCase();
+    if (supplier === 'suma') {
         filename = 'suma_catalogue.csv';
     }
     try {
