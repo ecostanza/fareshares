@@ -56,16 +56,6 @@ router.use(function (req, res, next) {
 
 
 async function render_pricelist(interactive, req, res, next) {
-  let entries = await prisma.entry.findMany({
-    'include': {
-      'category': true,
-    },
-  });
-
-  entries.sort(function (a, b) {
-    return a.category.sort_order - b.category.sort_order;
-  });
-
   let nav_url = '/manage_pricelist';
   if (interactive === false) {
     nav_url = '/';
@@ -89,6 +79,28 @@ router.get('/pricelist', function(req, res, next) {
 
 router.get('/manage_pricelist', function(req, res, next) {
   return render_pricelist(true, req, res, next);
+});
+
+router.get('/pricelist_csv', async function (req, res, next) {
+  let entries = await prisma.entry.findMany({
+    'include': {
+      'category': true,
+    },
+  });
+
+  entries.sort(function (a, b) {
+    return a.category.sort_order - b.category.sort_order;
+  });
+
+  // Category,Description,Infinity,Suma
+  let csv = "Category,Description,Infinity,Suma\n";
+  entries.forEach(function (e) {
+    csv += `${e.category.name},${e.infinity_desc},${e.infinity},${e.suma}\n`;
+  });
+
+  res.header('Content-Type', 'text/csv');
+  res.attachment('pricelist_export.csv');
+  return res.send(csv);
 });
 
 router.get('/batch_add/', async function(req, res, next) {
