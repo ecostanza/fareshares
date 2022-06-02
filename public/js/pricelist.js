@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             if (_selected_fields.map(f => f.key).includes('desc')) {
-                const desc_value = d3.select('input.description-filter').node().value;
+                const desc_value = d3.select('input.description-filter').node().value.toLowerCase();
                 if (desc_value.length > 2) {
                     filtered_entries = filtered_entries.filter(function (e) {
                         if (!e['suma_desc']) {
@@ -150,14 +150,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (_selected_fields.map(f => f.key).includes('price_updatedAt')) {
                 const update_value_str = d3.select('select.updated-filter').node().value;
-                const updated_weeks = parseInt(update_value_str);
+                const updated_weeks = parseInt(update_value_str, 10);
                 const now = luxon.DateTime.now();
                 if (!isNaN(updated_weeks)) {
                     // filter by price_updatedAt
                     filtered_entries = filtered_entries.filter(function (e) {
                         if (e['price_updatedAt'] !== null) {
                             const delta = luxon.Interval.fromDateTimes(e['price_updatedAt'], now).length('weeks');
-                            return delta > updated_weeks;
+                            return delta <= updated_weeks;
                         } else {
                             return false;
                         }
