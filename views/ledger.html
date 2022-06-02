@@ -23,6 +23,25 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 {% block content %}
   <main>
 
+    <!-- Confirm Delete Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmDeleteModalLabel">Are you sure?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Do you really want to delete this entry?
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="cancelDeleteButton" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" id="confirmDeleteButton" class="btn btn-primary">Delete Entry</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row g-2 my-3">
         <div class="col">
 
@@ -92,7 +111,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     <div class="row">
         <div class="col py-2">
-        <h3>Balance: <span>£??</span></h3>
+        <h3>Balance: <span id="balance">£??</span></h3>
         </div> <!-- col -->
     </div><!-- row -->
 
@@ -105,24 +124,11 @@ this program. If not, see <http://www.gnu.org/licenses/>.
             <td>Amount</td>
             <td>Description</td>
             <td>By</td>
-            <td class="d-none d-md-block">Comments</td>
+            <td class="d-none d-md-table-cell">Comments</td>
+            <td>Delete</td>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>1 Jun</td>
-            <td>+£100</td>
-            <td>Cash payments</td>
-            <td>Nuala</td>
-            <td class="d-none d-md-block">&nbsp;</td>
-        </tr>
-        <tr>
-            <td>2 Jun</td>
-            <td>-£537</td>
-            <td>Suma order</td>
-            <td>Enrico</td>
-            <td class="d-none d-md-block">some personal items</td>
-        </tr>
         </tbody>
         </table>
         </div> <!-- col -->

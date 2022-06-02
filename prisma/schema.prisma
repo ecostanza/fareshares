@@ -26,8 +26,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // provider = "sqlite"
-  // url      = "file:./dev.db"
+  //provider = "sqlite"
+  //url      = "file:./dev.db"
 }
 
 model Category {
@@ -70,7 +70,9 @@ model Entry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  updatedBy String  
+  updatedBy String
+
+  // user_orders     UserOrder[]
 }
 
 model User {
@@ -78,4 +80,40 @@ model User {
   username  String @unique
   hashed_password  String
   is_admin  Boolean
+  is_member  Boolean
+
+  user_transactions   Transaction[]
+
+  // budget_available Float @default(0)
+  // budget_committed Float @default(0)
+  // user_orders     UserOrder[]
+}
+
+// model UserOrder {
+//   id  Int   @id @default(autoincrement())
+
+//   min_amount Float
+//   max_amount Float
+//   min_unit_price Float
+//   max_unit_price Float
+
+//   user  User  @relation(fields: [userId], references: [id])
+//   userId  Int
+//   entry  Entry  @relation(fields: [entryId], references: [id])
+//   entryId Int
+// }
+
+model Transaction {
+  id  Int   @id @default(autoincrement())
+
+  amount Float
+  date DateTime
+  description String
+  comments String?
+
+  user  User  @relation(fields: [userId], references: [id])
+  userId  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

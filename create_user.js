@@ -41,7 +41,11 @@ const properties = [
     {
         name: 'admin',
         type: 'boolean'
-    }
+      },
+      {
+          name: 'member',
+          type: 'boolean'
+      }
   ];
 
 prompt.get(properties, function (err, result) {
@@ -52,6 +56,7 @@ prompt.get(properties, function (err, result) {
   console.log('  Username: ' + result.username);
   console.log('  Password: ' + result.password);
   console.log('  Admin: ' + result.admin);
+  console.log('  Member: ' + result.member);
   // hash password
   bcrypt.hash(result.password, 12)
   .then(function(hash) {
@@ -61,6 +66,7 @@ prompt.get(properties, function (err, result) {
         data: {
             'username': result.username,
             'hashed_password': hash,
+            'is_member': result.member,
             'is_admin': result.admin
         }
     })

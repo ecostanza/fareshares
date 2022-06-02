@@ -22,13 +22,16 @@ var express = require('express');
 var router = express.Router();
 var catalog_utils = require('../catalog_utils');
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
+//const bcrypt = require('bcrypt');
+const mail_utils = require('../mail_utils');
+
 
 router.use(function (req, res, next) {
   res.locals['user'] = {'username': req.user.username, 'is_admin': req.user.is_admin};
   const menu_items = [
     {admin_only: false, url: '/ledger', label: 'Ledger'},
-    {admin_only: false, url: '/', label: 'Printable Pricelist'},
+    {admin_only: false, url: '/pricelist', label: 'Printable Pricelist'},
     // 
     {admin_only: true, url: '/manage_pricelist', label: 'Manage Pricelist'},
     {admin_only: true, url: '/add', label: 'Add Entry'},
@@ -41,10 +44,15 @@ router.use(function (req, res, next) {
   
   if (req.user.is_admin === false) {
     // filter out restricted views
-    const allowed_items = menu_items.filter(i => (i.admin_only === false));
+    let allowed_items = menu_items.filter(i => (i.admin_only === false));
+    // allowed_items.push({url: ''});
 
     // if the url requested is not in the allowed ones, redirect to homepage
-    if (allowed_items.map(i => i.url).includes(req.url) === false) {
+    if (
+      allowed_items.map(i => i.url).includes(req.url) === false
+      & req.url.startsWith('/transactions') === false
+      & req.url.startsWith('/entries') === false
+      ) {
       return res.redirect('/');
     }
 
@@ -251,7 +259,7 @@ router.get('/entries', async function (req, res, next) {
 
 });
 
-router.put('/entries/', async function(req, res, next) {
+router.put('/entries', async function(req, res, next) {
   // get codes from request body
   const infinity_code = req.body['infinity'].toLowerCase();
   const suma_code = req.body['suma'].toLowerCase();
@@ -324,6 +332,118 @@ router.put('/entries/', async function(req, res, next) {
     return res.json({'error': 'entry create error ' + error});
   }        
 
+});
+
+
+router.put('/transactions', async function(req, res, next) {
+  var html_report = `PUT /transactions request with:\n${JSON.stringify(req.body)}`;
+  var txt_report = html_report;
+  await mail_utils.send_report(html_report, txt_report, "Transaction logged");
+  // get codes from request body
+  const required = ['date', 'amount', 'description', 'by'];
+  for (const f of required) {
+    if (!req.body[f]) {
+      return res.json({'error': `no ${f} provided` });
+    }
+  }
+
+  // validate date
+  const date = new Date(req.body['date']);
+  if (date == 'Invalid Date') {
+    return res.json({'error': `invalid date` });
+  }
+
+  // validate amount 
+  const amount = +req.body['amount'];
+  if (Number.isNaN(amount)) {
+    return res.json({'error': `invalid amount` });
+  }
+
+  const description = req.body['description'].toLowerCase();
+  let comments = null;
+  if (req.body['comments']) {
+    comments = req.body['comments'].toLowerCase();
+  }
+
+  let transaction_user = null;
+  const uname = req.body['by'].toLowerCase();
+  try {
+    transaction_user = await prisma.user.findUnique({
+      'where': {
+          'username': uname
+      }
+    });
+    if (transaction_user === null) {
+      transaction_user = await prisma.user.create({
+        'data': {
+            'username': uname,
+            'hashed_password': '',
+            'is_admin': false,
+            'is_member': true
+        }
+      });  
+    }
+  } catch (error) {
+    console.log('user creation error:', error);
+    return res.json({'error': error });
+  }
+
+  const data = {
+    'date': date,
+    'amount': amount,
+    'description': description,
+    'user': {'connect': {'id': transaction_user.id}},
+    'comments': comments
+  };  
+  let result = {};
+  try {
+    result = await prisma.transaction.create({'data': data});
+    return res.json(result);
+  } catch (error) {
+    console.log('transaction create error:', error, data);
+    console.log('data:', data);
+    return res.json({'error': 'transaction create error ' + error});
+  }        
+
+});
+
+router.get('/transactions', async function (req, res, next) {
+  try {
+    let transaction = await prisma.transaction.findMany({
+      'include': {
+        'user': {
+          select: {
+            username: true
+          }
+        },
+      },
+      'orderBy': {
+        'date':  'desc'
+      }
+    });
+
+    return res.json(transaction);
+  } catch (error) {
+    console.log('error:', error);
+    res.json(error);
+  }
+
+});
+
+router.delete('/transactions/:transaction_id', async function (req, res) {
+  // var html_report = `DELETE /transaction/${req.params['transaction_id']} request`;
+  // delete 
+  const transaction_id = parseInt(req.params['transaction_id'], 10);
+  try {
+    const result = await prisma.transaction.delete({
+      'where': {id: transaction_id}
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.log('delete error:', error);
+    res.json ({'error': error});
+  }
 });
 
 

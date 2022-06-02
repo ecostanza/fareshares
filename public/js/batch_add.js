@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function() {
     d3.select('#processButton').on('click', async function () {
         console.log('processButton clicked');
 
-        const all_rows = [];
+        let all_rows = [];
         d3.select('#csv_input').selectChildren().each(function (d, i) {
             const div = d3.select(this);
             div.attr('id', `row_${i}`);
@@ -36,6 +36,16 @@ document.addEventListener("DOMContentLoaded", function() {
             console.log(i, row);
         });
         
+        if (typeof(all_rows[1]) === 'string') {
+            let one_row = all_rows;
+            all_rows = [];
+            while(one_row.length) {
+                all_rows.push(one_row.splice(0,3));
+            }
+        }
+        // const newArr = [];
+        // 
+
         let n = 0;
         for (const row of all_rows) {
             const [category, description, infinity, suma] = row;

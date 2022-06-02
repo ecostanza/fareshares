@@ -3,7 +3,10 @@ const nodemailer = require("nodemailer");
 const dotenv = require('dotenv');
 dotenv.config();
 
-async function send_report(html_report, txt_report) {
+async function send_report(html_report, txt_report, subject) {
+  if (subject === undefined) {
+    subject = "Pricelist Update";
+  }
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
@@ -18,9 +21,9 @@ async function send_report(html_report, txt_report) {
 
   // send mail with defined transport object
   let info = await transporter.sendMail({
-    from: `"Pricelist Agent" <${process.env.SMTP_USER}>`, // sender address
+    from: `"Fareshares App Agent" <${process.env.SMTP_USER}>`, // sender address
     to: process.env.REPORT_RECIPIENTS, //"e.costanza@ieee.org", // list of receivers
-    subject: "Pricelist Update", // Subject line
+    subject: subject, // Subject line
     text: txt_report, // plain text body
     html: html_report, // html body
   });
