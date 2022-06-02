@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const sum = entries.reduce(function (s, e) {
             console.log(`e: ${e}, s: ${s}`);
             return s + +e.amount;
-        }, 0);
+        }, 0).toFixed(2);
         console.log(sum);
         d3.select('span#balance').text(`£${sum}`);
 
