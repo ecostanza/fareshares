@@ -80,7 +80,7 @@ model User {
   username  String @unique
   hashed_password  String
   is_admin  Boolean
-  is_member  Boolean @default(false)
+  is_member  Boolean
 
   user_transactions   Transaction[]
 
