@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (data['result'] === 'success') {
                 d3.selectAll('input').classed('is-invalid', false);
                 console.log('redirect..');
-                window.location = '/manage_pricelist';
+                window.location = '/';
             } else {
                 console.log('error detected');
                 // handle failed validation in bootstrap

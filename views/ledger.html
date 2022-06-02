@@ -1,0 +1,151 @@
+<!--
+This file is part of fareshares-pricelist a simple nodejs web application to 
+manage the pricelist of a food coop.
+
+Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+{% extends "base.html" %}
+
+{% block content %}
+  <main>
+
+    <div class="row g-2 my-3">
+        <div class="col">
+
+        <form id="addForm">
+        <div class="row">
+            <div class="col-sm">
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Date</label>
+                    <!-- input type="text" class="form-control needs-validation" id="date" aria-describedby="amountHelp" required -->
+                    <input type="text" class="form-control" id="date" aria-describedby="amountHelp" required>
+                    <div id="productIDHelp" class="form-text">Day when the transaction took place.</div>
+                    <div class="invalid-feedback">This field is required.</div>
+                </div>
+            </div>
+
+            <div class="col-sm">
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Amount</label>
+                    <input type="number" class="form-control needs-validation" id="amount" aria-describedby="amountHelp" required>
+                    <div id="productIDHelp" class="form-text">The amount of money. Negative if it's an expenditure.</div>
+                    <div class="invalid-feedback">This field is required.</div>
+                </div>      
+            </div>
+
+            <div class="col-sm">
+                <div class="mb-3">
+                    <label for="descriptionSelect" class="form-label">Description</label>
+                    <input type="text" id="description_autocomplete" class="form-control" >
+                    <div id="commentsHelp" class="form-text">E.g., Infinity order, cash payments, etc..</div>
+                    <div class="invalid-feedback">This field is required.</div>
+                </div>
+            </div>
+
+            <div class="col-sm">
+                <div class="mb-3">
+                    <label for="by" class="form-label">Logged by</label>
+                    <input type="text" class="form-control needs-validation" id="by" aria-describedby="commentsHelp">
+                    <div id="commentsHelp" class="form-text">Your name.</div>
+                    <div class="invalid-feedback">This field is required.</div>
+                </div>
+            </div>
+
+            <div class="col-sm">
+                <div class="mb-3">
+                    <label for="comments" class="form-label">Comments?</label>
+                    <input type="text" class="form-control needs-validation" id="comments" aria-describedby="commentsHelp">
+                    <div id="commentsHelp" class="form-text">Any other information (optional).</div>
+                    <div class="invalid-feedback">Not sure.</div>
+                </div>
+            </div>
+
+            <div class="col-sm">
+                <div class="mt-4 d-grid gap-2">
+                    <button 
+                    id="addButton" 
+                    class="btn btn-primary" 
+                    type="button" 
+                    disabled
+                    aria-disabled="true">Add</button>
+                </div>
+            </div>
+        </form>
+        </div>
+          
+        </div> <!-- col -->
+    </div><!-- row -->
+
+    <div class="row">
+        <div class="col py-2">
+        <h3>Balance: <span>£??</span></h3>
+        </div> <!-- col -->
+    </div><!-- row -->
+
+    <div class="row g-5">
+        <div class="col">
+        <table class="table">
+        <thead>
+        <tr>
+            <td>Date</td>
+            <td>Amount</td>
+            <td>Description</td>
+            <td>By</td>
+            <td class="d-none d-md-block">Comments</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1 Jun</td>
+            <td>+£100</td>
+            <td>Cash payments</td>
+            <td>Nuala</td>
+            <td class="d-none d-md-block">&nbsp;</td>
+        </tr>
+        <tr>
+            <td>2 Jun</td>
+            <td>-£537</td>
+            <td>Suma order</td>
+            <td>Enrico</td>
+            <td class="d-none d-md-block">some personal items</td>
+        </tr>
+        </tbody>
+        </table>
+        </div> <!-- col -->
+    </div><!-- row -->
+
+  </main>
+
+{% endblock %}
+
+
+{% block js %}
+    <!-- local imports -->
+    <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker-bs5.min.css">
+
+    <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
+    <script type="text/javascript" src="/static/js/libs/autocomplete.js"></script>
+    <script type="text/javascript" src="/static/js/ledger.js"></script>
+    <script type="text/javascript">
+      const categories = [];
+      //{% for c in categories %}
+      //categories.push("{{ c.name }}");
+      //{% endfor %}
+    </script>
+{% endblock %}
+

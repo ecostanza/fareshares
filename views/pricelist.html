@@ -20,12 +20,13 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 {% extends "base.html" %}
 
+{#
 {% block navbar %}
-
     {% if interactive %}
     {{ super() }}
     {% endif %}
 {% endblock %}
+#}
 
 {% block content %}
     <button id="settingsButton" class="float-end btn btn-outline-secondary btn-sm" type="button">
@@ -92,7 +93,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 {% block js %}
     <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
-    <script type="text/javascript" src="/static/js/index.js"></script>
+    <script type="text/javascript" src="/static/js/pricelist.js"></script>
     <script type="text/javascript">
     const interactive = {{ interactive }};
     </script>

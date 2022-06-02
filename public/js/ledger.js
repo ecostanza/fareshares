@@ -1,0 +1,252 @@
+/**
+ This file is part of fareshares-pricelist a simple nodejs web application to 
+manage the pricelist of a food coop.
+
+Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+/*global d3*/
+/*eslint no-undef: "error"*/
+/*eslint-env browser*/
+
+document.addEventListener("DOMContentLoaded", function() { 
+
+    const date_sel = document.querySelector('input#date');
+    const datepicker = new Datepicker(date_sel, {
+        buttonClass: 'btn',
+    }); 
+    
+
+    // TODO: update to work with log description
+    // const category_autocomplete = d3.select('input#description_autocomplete');
+    // const ac = new Autocomplete(category_autocomplete.node(), {
+    //     data: categories.map(function (c) {return {'label': c, 'value': c};}),
+    //     // maximumItems: 5,
+    //     onSelectItem: ({label, value}) => {
+    //         console.log("user selected:", label, value);
+    //     }
+    // });
+
+    const date_input = d3.select('input#date');
+    const amount_input = d3.select('input#amount');
+    const description_input = d3.select('input#description_autocomplete');
+    function enable_add_button () {
+        console.log('enable_add_button');
+        console.log('date_input.node().value:', date_input.node().value);
+        console.log('amount_input.node().value:', amount_input.node().value);
+        console.log('description_input.node().value:', description_input.node().value);
+        
+        if (
+        // check if date_input has text
+        date_input.node().value !== '' &
+        amount_input.node().value !== '' &
+        description_input.node().value !== '' 
+        ) {
+            d3.select('#addButton').attr('disabled', null);
+        }
+    }
+
+    date_input.on('keyup', enable_add_button);
+    amount_input.on('keyup', enable_add_button);
+    description_input.on('keyup', enable_add_button);
+
+    d3.select('#addButton').on('click', function () {
+        const date = date_input.node().value;
+        const amount = amount_input.node().value;
+        const description = description_input.node().value;
+        const comments = d3.select('input#comments').node().value;
+
+        console.log(date, amount, description, comments);
+
+        const url = `/logs/`;
+        d3.json(url, {
+            method: 'PUT', 
+            headers: { "Content-Type": "application/json" }
+        }).then(function (data) {
+            console.log('post response:', data);
+            if (data['error'] === 'not found') {
+                console.log('error detected');
+                // handle failed validation in bootstrap
+                d3.select('#productID').classed('is-invalid', true);
+            } else {
+                d3.select('#productID').classed('is-invalid', false);
+                // disable initial part of form
+                d3.select('fieldset#searchFormFieldset').attr('disabled', true);
+                const results_div = d3.select('#results');
+                results_div.selectAll("*").remove();
+                results_div.append('div')
+                    .html(function () {
+                        // return JSON.stringify(data['product_details']);
+                        const d = data['product_details'];
+                        return `
+                        <div>
+                            <h4>${supplier} item found:</h4>
+                            <div class="details">
+                                ${d['brand']}: ${d['full description']} (organic: ${d['is_organic']})
+                            </div>
+                        </div>`;
+                    });
+
+                results_div.append('div')
+                    .html(`
+                        <div>
+                            <h5>Please select an option for ${other_supplier}:</h4>
+                        </div>`
+                    );
+                    
+                const matches = results_div.append('div')
+                    .attr('class', 'matches');
+                
+                d3.select('.matches')
+                    .selectAll('div')
+                    .data(data['matches'])
+                    .enter()
+                    .append('div')
+                    .html(function (d) {
+                        console.log(d);
+                        // return JSON.stringify(d);
+                        const i = d['item'];
+                        let html = `
+                        <input 
+                            class="form-check-input" 
+                            type="radio" 
+                            value="${i['code']}"
+                            name="matchingProductRadio" 
+                            id="flexRadio${i['code']}">
+                        <label class="form-check-label" for="flexRadio${i['code']}">
+                            ${i['brand']}: ${i['full description']} (organic: ${i['is_organic']})
+                        </label>
+                        `;
+                        // return `${i['brand']}: ${i['full description']} (organic: ${i['is_organic']})`;
+                        return html;
+                    });
+
+                d3.select('.matches')
+                    .append('div')
+                    .html(`
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <input id="manualMatchRadio" name="matchingProductRadio" class="form-check-input mt-0" type="radio" value="" aria-label="Radio button for following text input">
+                            </div>
+                            <input type="text" id="manualMatch" placeholder="Manually enter ${other_supplier} product code" class="form-control" aria-label="Text input with radio button">
+                        </div>`);
+                
+                d3.select('.matches')
+                    .append('div')
+                    .html(`
+                    <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="matchingProductRadio" 
+                        value="none"
+                        id="flexRadioNone">
+                    <label class="form-check-label" for="flexRadioNone">
+                        There is no matching item from ${other_supplier}
+                    </label>
+                    `);
+
+                // TODO: add buttons to submit and cancel
+                results_div.append('span')
+                    .html(`<button type="button" id="addButton" class="btn btn-primary" disabled>Add</button>&nbsp;`);
+
+                results_div.append('span')
+                    .html(`<button type="button" id="cancelButton" class="btn btn-primary">Cancel</button>`);
+                
+                d3.select('#addButton').on('click', function () {
+                    let value = d3.select('input[name="matchingProductRadio"]:checked').node().value;
+                    console.log('value:', value);
+                    let add_data = {}
+                    add_data[supplier.toLowerCase()] = product_id;
+                    add_data[other_supplier.toLowerCase()] = value;
+                    // add_data['category_name'] = d3.select('#categorySelect').node().value;
+                    add_data['category_name'] = category_autocomplete.node().value;
+                    add_data['user'] = 'enrico';
+                    const add_url = '/entries/';
+                    d3.json(add_url, {
+                        method: 'PUT', 
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        'body': JSON.stringify(add_data)
+                    }).then(function (response) {
+                        console.log('add response:', response);
+                        // TODO: show feedback on success or failure
+                        d3.select('fieldset#matchesFormFieldset').attr('disabled', true);
+                        const feedback = d3.select('div#feedback');
+                        if (response.error) {
+                            let msg = 'Sorry, that did not work';
+                            if (response.error.includes('Unique constraint failed')) {
+                                msg += '<br/>That item seems to be already in the pricelist';
+                            }
+                            feedback.html(msg);
+                            feedback.append('div')
+                                .html(`
+                                <button 
+                                    type="button" 
+                                    id="restartButton" 
+                                    class="btn btn-primary">Try again</button>`);
+                        } else {
+                            feedback.html(`It worked! <br/>
+                            Infinity: ${response.infinity} <br/>
+                            Suma: ${response.suma}
+                            `);
+                            feedback.append('div')
+                                .html(`
+                                <button 
+                                    type="button" 
+                                    id="restartButton" 
+                                    class="btn btn-primary">Add another</button>`);
+                        }
+                        d3.select('#restartButton').on('click', function () {
+                            window.location.reload();
+                        });
+                    });            
+                });
+
+                // enable add only if an option is selected
+                const match_input = d3.selectAll('input[name=matchingProductRadio]');
+                function enable_find_button () {
+                    // console.log('enable_find_button');
+                    // console.log('supplier_input.node().value:', supplier_input.node().value);
+                    // console.log('product_input.node().value:', product_input.node().value);
+                    const checked = match_input.nodes().map(item => item.checked).some(item => item === true);
+                    // check if supplier_input is selected
+                    if (checked) {
+                    // check if product_input has text
+                        if (d3.select('input[name="matchingProductRadio"]:checked').node().value !== '') {
+                            d3.select('#addButton').attr('disabled', null);
+                        } else {
+                            d3.select('#addButton').attr('disabled', true);
+                        }
+                    }
+                }
+                match_input.on('change', enable_find_button);
+                // d3.select('input#manualMatch').on('keyup', );
+                d3.select('input#manualMatch').on('keyup', function () {
+                    let value = d3.select('#manualMatch').node().value;
+                    d3.select('input#manualMatchRadio').attr('value', value);
+                    console.log('value:', value);
+                    enable_find_button();
+                });
+
+            
+                d3.select('#cancelButton').on('click', function () {
+                    window.location.reload();
+                });
+            }
+        })
+
+    });
+
+});

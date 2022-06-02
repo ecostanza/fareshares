@@ -31,56 +31,37 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     <!-- local imports -->
     <link rel="stylesheet" type="text/css" href="/static/css/style.css">
 
-    <title>Pricelist</title>
+    <title>{{ title }}</title>
   </head>
   <body>
+  <div class="container-lg">
 
     {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">Fareshares Pricelist</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light d-print-none">
+        <a class="navbar-brand" href="#">Fareshares</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link" href="/" target="_blank">Printable Pricelist</a>
-            </li>
-            <li class="nav-item">
-              <a 
-              {% if nav_url === '/manage_pricelist' %}
-              class="nav-link active" aria-current="page" 
-              {% else %}
-              class="nav-link" 
-              {% endif %}
-              href="/manage_pricelist">Manage Pricelist</a>
-            </li>
-            <li class="nav-item">
-              <a 
-              {% if nav_url === '/add' %}
-              class="nav-link active" aria-current="page" 
-              {% else %}
-              class="nav-link" 
-              {% endif %}
-              href="/add">Add Entry</a>
-            </li>
-            <li class="nav-item">
-              <a 
-              {% if nav_url === '/batch_add' %}
-              class="nav-link active" aria-current="page" 
-              {% else %}
-              class="nav-link" 
-              {% endif %}
-              href="/batch_add">Batch Add Entries</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" href="/categories" tabindex="-1" aria-disabled="true">Manage Categories</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" href="/users" tabindex="-1" aria-disabled="true">Manage Users</a>
-            </li>
+            {% for item in menu_items %}
+              <li class="nav-item">
+                <a 
+                {% if nav_url == item.url %}
+                class="nav-link active" aria-current="page" 
+                {% else %}
+                class="nav-link" 
+                {% endif %}
+                href="{{item.url}}">{{item.label}}</a>
+              </li>
+            {% endfor %}
           </ul>
+          <span class="navbar-text">
+            <a class="nav-link" href="/logout" tabindex="-1" aria-disabled="true">Logout</a>
+          </span>
+          <span class="navbar-text">
+            {{ username }}
+          </span>
           <!--
           <form class="d-flex">
             <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
@@ -88,7 +69,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
           </form>
           -->
         </div>
-      </div>
     </nav>
     {% endblock %} 
 
@@ -105,6 +85,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     {% block content %}
     {% endblock %}
+    </div>
 
     <!-- Optional JavaScript -->
     <script src="/static/js/libs/bootstrap.bundle.min.js"></script>

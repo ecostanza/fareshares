@@ -24,6 +24,40 @@ var catalog_utils = require('../catalog_utils');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient()
 
+router.use(function (req, res, next) {
+  res.locals['user'] = {'username': req.user.username, 'is_admin': req.user.is_admin};
+  const menu_items = [
+    {admin_only: false, url: '/ledger', label: 'Ledger'},
+    {admin_only: false, url: '/', label: 'Printable Pricelist'},
+    // 
+    {admin_only: true, url: '/manage_pricelist', label: 'Manage Pricelist'},
+    {admin_only: true, url: '/add', label: 'Add Entry'},
+    {admin_only: true, url: '/batch_add', label: 'Batch Add Entries'},
+    {admin_only: true, url: '/categories', label: 'Manage Categories'},
+    {admin_only: true, url: '/users', label: 'Manage Users'},
+    //{url: '/', label: ''},
+  ];
+  res.locals['menu_items'] = menu_items;
+  
+  if (req.user.is_admin === false) {
+    // filter out restricted views
+    const allowed_items = menu_items.filter(i => (i.admin_only === false));
+
+    //console.log('req.url', req.url);
+    //console.log('urls:', allowed_items.map(i => i.url));
+    // if the url requested is not in the allowed ones, redirect to homepage
+    if (allowed_items.map(i => i.url).includes(req.url) === false) {
+      return res.redirect('/');
+    }
+
+    res.locals['menu_items'] = allowed_items;
+  }
+  
+  
+  next();
+});
+
+
 async function render_pricelist(interactive, req, res, next) {
   // res.render('index', { title: 'Express' });
   let entries = await prisma.entry.findMany({
@@ -36,31 +70,39 @@ async function render_pricelist(interactive, req, res, next) {
     return a.category.sort_order - b.category.sort_order;
   });
   // console.log('entries', entries.map(e => [e.category.name, e.infinity_desc]));
-  res.render('index.html', { 
+  let nav_url = '/manage_pricelist';
+  if (interactive === false) {
+    nav_url = '/';
+  }
+  res.render('pricelist.html', { 
     'title': 'Pricelist',
     'interactive': interactive,
-    'nav_url': '/manage_pricelist'//,
-    //'entries': entries
+    'username': req.user.username,
+    'nav_url': nav_url
   });
 }
 
-// TODO: change to /printable_pricelist ?
 router.get('/', function(req, res, next) {
-  console.log('req.user.admin', req.user.admin);
+  res.redirect('/ledger');
+});
+
+// TODO: change to /printable_pricelist ?
+router.get('/pricelist', function(req, res, next) {
+  // console.log('req.user.is_admin', req.user.is_admin);
   return render_pricelist(false, req, res, next);
 });
 
 router.get('/manage_pricelist', function(req, res, next) {
-  if ( !req.user.is_admin ) {
-    return res.redirect('/');
-  }
+  // if ( !req.user.is_admin ) {
+  //   return res.redirect('/');
+  // }
   return render_pricelist(true, req, res, next);
 });
 
 router.get('/batch_add/', async function(req, res, next) {
-  if ( !req.user.is_admin ) {
-    return res.redirect('/');
-  }
+  // if ( !req.user.is_admin ) {
+  //   return res.redirect('/');
+  // }
 
   // console.log('get batch_add');
   res.render('batch_add.html', { 
@@ -71,16 +113,57 @@ router.get('/batch_add/', async function(req, res, next) {
 });
 
 router.get('/add/', async function(req, res, next) {
-  if ( !req.user.is_admin ) {
-    return res.redirect('/');
-  }
+  // if ( !req.user.is_admin ) {
+  //   return res.redirect('/');
+  // }
 
   const categories = await prisma.category.findMany({});
   // console.log('get add, categories:', categories);
   res.render('add.html', { 
     'title': 'Add Product',
     'nav_url': '/add',
+    'username': req.user.username,
     'categories': categories
+  });
+});
+
+router.get('/ledger/', async function(req, res, next) {
+  // if ( !req.user.is_admin ) {
+  //   return res.redirect('/');
+  // }
+
+  // const categories = await prisma.category.findMany({});
+  // console.log('get add, categories:', categories);
+  res.render('ledger.html', { 
+    'title': 'Ledger',
+    'nav_url': '/ledger',
+    'username': req.user.username,
+    'categories': []
+  });
+});
+
+router.get('/users/', async function(req, res, next) {
+  // if ( !req.user.is_admin ) {
+  //   return res.redirect('/');
+  // }
+
+  const users = await prisma.user.findMany({});
+  res.locals['users'] = users;
+
+  res.locals['title'] = 'Users';
+  res.locals['nav_url'] = '/users';
+  res.locals['username'] = req.user.username;
+  res.render('users.html');
+});
+
+
+router.get('/client_order/', async function(req, res, next) {
+  const categories = await prisma.category.findMany({});
+  // console.log('get add, categories:', categories);
+  res.render('client_order.html', { 
+    'title': 'Order Product',
+    'username': req.user.username,
+    'nav_url': '/client_order'
   });
 });
 
