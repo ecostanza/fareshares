@@ -38,7 +38,6 @@ router.use(function (req, res, next) {
     {admin_only: true, url: '/batch_add', label: 'Batch Add Entries'},
     {admin_only: true, url: '/categories', label: 'Manage Categories'},
     {admin_only: true, url: '/users', label: 'Manage Users'},
-    //{url: '/', label: ''},
   ];
   res.locals['menu_items'] = menu_items;
   
@@ -47,9 +46,14 @@ router.use(function (req, res, next) {
     let allowed_items = menu_items.filter(i => (i.admin_only === false));
     // allowed_items.push({url: ''});
 
+    const allowed_urls = allowed_items.map(i => i.url).concat(
+      ['','/']
+    );
+    // console.log('allowed_urls', allowed_urls);
+
     // if the url requested is not in the allowed ones, redirect to homepage
     if (
-      allowed_items.map(i => i.url).includes(req.url) === false
+      allowed_urls.includes(req.url) === false
       & req.url.startsWith('/transactions') === false
       & req.url.startsWith('/entries') === false
       ) {
