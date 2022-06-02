@@ -185,7 +185,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                     console.log('delete response:', response);
                     console.log('removing:', this.parentNode.parentNode);
-                    tr.remove();
+                    // tr.remove();
+                    load_data();
                 } catch(error) {
                     console.log('delete error:', error);
                 }
