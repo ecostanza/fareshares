@@ -43,8 +43,6 @@ router.use(function (req, res, next) {
     // filter out restricted views
     const allowed_items = menu_items.filter(i => (i.admin_only === false));
 
-    //console.log('req.url', req.url);
-    //console.log('urls:', allowed_items.map(i => i.url));
     // if the url requested is not in the allowed ones, redirect to homepage
     if (allowed_items.map(i => i.url).includes(req.url) === false) {
       return res.redirect('/');
@@ -53,23 +51,21 @@ router.use(function (req, res, next) {
     res.locals['menu_items'] = allowed_items;
   }
   
-  
   next();
 });
 
 
 async function render_pricelist(interactive, req, res, next) {
-  // res.render('index', { title: 'Express' });
   let entries = await prisma.entry.findMany({
     'include': {
       'category': true,
     },
   });
-  // console.log('entries', entries.map(e => [e.category.name, e.infinity_desc]));
+
   entries.sort(function (a, b) {
     return a.category.sort_order - b.category.sort_order;
   });
-  // console.log('entries', entries.map(e => [e.category.name, e.infinity_desc]));
+
   let nav_url = '/manage_pricelist';
   if (interactive === false) {
     nav_url = '/';
@@ -88,23 +84,14 @@ router.get('/', function(req, res, next) {
 
 // TODO: change to /printable_pricelist ?
 router.get('/pricelist', function(req, res, next) {
-  // console.log('req.user.is_admin', req.user.is_admin);
   return render_pricelist(false, req, res, next);
 });
 
 router.get('/manage_pricelist', function(req, res, next) {
-  // if ( !req.user.is_admin ) {
-  //   return res.redirect('/');
-  // }
   return render_pricelist(true, req, res, next);
 });
 
 router.get('/batch_add/', async function(req, res, next) {
-  // if ( !req.user.is_admin ) {
-  //   return res.redirect('/');
-  // }
-
-  // console.log('get batch_add');
   res.render('batch_add.html', { 
     'title': 'Batch Add Products',
     'nav_url': '/batch_add',
@@ -113,12 +100,8 @@ router.get('/batch_add/', async function(req, res, next) {
 });
 
 router.get('/add/', async function(req, res, next) {
-  // if ( !req.user.is_admin ) {
-  //   return res.redirect('/');
-  // }
-
   const categories = await prisma.category.findMany({});
-  // console.log('get add, categories:', categories);
+
   res.render('add.html', { 
     'title': 'Add Product',
     'nav_url': '/add',
@@ -128,12 +111,6 @@ router.get('/add/', async function(req, res, next) {
 });
 
 router.get('/ledger/', async function(req, res, next) {
-  // if ( !req.user.is_admin ) {
-  //   return res.redirect('/');
-  // }
-
-  // const categories = await prisma.category.findMany({});
-  // console.log('get add, categories:', categories);
   res.render('ledger.html', { 
     'title': 'Ledger',
     'nav_url': '/ledger',
@@ -143,10 +120,6 @@ router.get('/ledger/', async function(req, res, next) {
 });
 
 router.get('/users/', async function(req, res, next) {
-  // if ( !req.user.is_admin ) {
-  //   return res.redirect('/');
-  // }
-
   const users = await prisma.user.findMany({});
   res.locals['users'] = users;
 
@@ -159,7 +132,7 @@ router.get('/users/', async function(req, res, next) {
 
 router.get('/client_order/', async function(req, res, next) {
   const categories = await prisma.category.findMany({});
-  // console.log('get add, categories:', categories);
+
   res.render('client_order.html', { 
     'title': 'Order Product',
     'username': req.user.username,
@@ -167,10 +140,7 @@ router.get('/client_order/', async function(req, res, next) {
   });
 });
 
-// TODO: change to /entries/:entry_id/matching_products/ ?
-// maybe not because there is not an entry item in the DB for this yet
 router.get('/matching_products/', function(req, res, next) {
-  // res.render('index', { title: 'Express' });
   const code = req.query.product_id;
   const supplier = req.query.supplier;
   let other_supplier = 'suma';
@@ -180,12 +150,9 @@ router.get('/matching_products/', function(req, res, next) {
   
   catalog_utils.find_product(code, supplier)
     .then(function (product_details) {
-      // console.log('first then');
       return catalog_utils.find_matches(product_details, other_supplier);
     })
     .then(function (result) {
-      // console.log('second then');
-      // console.log('result:', result);
       res.json(result);
     })
     .catch(function (error) {
@@ -208,7 +175,7 @@ router.delete('/entries/:entry_id', async function (req, res) {
       const result = await prisma.entry.delete({
         'where': {id: entry_id}
       });
-      // console.log('delete result:', result);
+
       res.json(result);
     } catch (error) {
       console.log('delete error:', error);
@@ -221,10 +188,10 @@ router.post('/entries/:entry_id', async function (req, res) {
   const entry_id = parseInt(req.params['entry_id'], 10);
   const expected_fields = ['preferred_supplier', 'category_name'];
   const data = {};
-  // console.log('req.body:', req.body);
+
   for (const k in expected_fields) {
     const field = expected_fields[k];
-    // console.log(`field ${field}, req.body[field] ${req.body[field]}`);
+
     if (req.body[field]) {
       data[field] = req.body[field];
     }
@@ -232,14 +199,13 @@ router.post('/entries/:entry_id', async function (req, res) {
   
 
   try {
-    // console.log('data:', data);
     const result = await prisma.entry.update({
       'where': {id: entry_id},
       'data': data
     });
-    // console.log('update result:', result);
+
     catalog_utils.calculate_price(result);
-    // console.log('result:', result);
+
     const price_result = await prisma.entry.update({
       'where': {id: entry_id},
       'data': result
@@ -264,7 +230,7 @@ router.get('/entries', async function (req, res, next) {
         }
       }
     });
-    // console.log('entries', entries);
+
     return res.json(entries);
   } catch (error) {
     console.log('category error:', error);
@@ -274,8 +240,6 @@ router.get('/entries', async function (req, res, next) {
 });
 
 router.put('/entries/', async function(req, res, next) {
-  // res.render('index', { title: 'Express' });
-  // console.log(req.body);
   // get codes from request body
   const infinity_code = req.body['infinity'].toLowerCase();
   const suma_code = req.body['suma'].toLowerCase();
@@ -310,7 +274,7 @@ router.put('/entries/', async function(req, res, next) {
     console.log('category error:', error);
     return res.json({'error': error });
   }
-  // console.log('category:', category);
+
   // get from request
   const user = {'username': req.body['user']};
 
@@ -324,20 +288,16 @@ router.put('/entries/', async function(req, res, next) {
   try {
     // check codes
     await catalog_utils.get_product_data(infinity_code, 'infinity', data);
-    // console.log('data:', data);
     await catalog_utils.get_product_data(suma_code, 'suma', data);
-    //console.log('data:', data);
   } catch (error) {
     return res.json({'error': error});
   }
 
-  // console.log('category:', category);
   data['category'] = {'connect': {'id': category.id}};
   data['updatedBy'] = user.username;
 
   if (!data['n_items']) {
       data['n_items'] = 1;
-      // data['n_items'] = data['item_size'];
   }
 
   catalog_utils.calculate_price(data);
