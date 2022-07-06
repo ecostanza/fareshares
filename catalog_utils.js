@@ -94,7 +94,7 @@ function do_find_product (code, supplier) {
             found_item['brand'] = row['brand'].toLowerCase();
             found_item['is_organic'] = row['organic'] === 'organic';
             found_item['add_vat'] = row['Vat Marker'] === 'V';
-            found_item['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
+            found_item['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
             found_item['units case'] = parseInt(found_item['units case'], 10);
             found_item['pk size'] = parseInt(found_item['pk size'], 10);
             found_item['Case price'] = parseFloat(found_item['Case price'], 10);
@@ -294,7 +294,7 @@ function do_find_matches (product_details, supplier) {
             };
             row['full description'] = row['product description'].toLowerCase();
             // console.log();
-            row['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
+            row['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
             if (row['pack size'] === suma_item['pack size']) {
                 current['size_match'] = true;
             }
