@@ -269,7 +269,7 @@ router.put('/entries', async function(req, res, next) {
   const suma_code = req.body['suma'].toLowerCase();
   const category_name = req.body['category_name'];
   if (!category_name) {
-    return res.json({'error': 'no category name provided' });
+    return res.status(400).json({'error': 'no category name provided' });
   }
 
   let category = null;
@@ -296,14 +296,14 @@ router.put('/entries', async function(req, res, next) {
     }
   } catch (error) {
     console.log('category error:', error);
-    return res.json({'error': error });
+    return res.status(400).json({'error': error });
   }
 
   // get from request
   const user = {'username': req.body['user']};
 
   if (!suma_code && !infinity_code) {
-    return res.json({'error': 'no product code provided' });
+    return res.status(400).json({'error': 'no product code provided' });
   }
 
   let data = {
@@ -314,7 +314,7 @@ router.put('/entries', async function(req, res, next) {
     await catalog_utils.get_product_data(infinity_code, 'infinity', data);
     await catalog_utils.get_product_data(suma_code, 'suma', data);
   } catch (error) {
-    return res.json({'error': error});
+    return res.status(400).json({'error': error});
   }
 
   data['category'] = {'connect': {'id': category.id}};
@@ -333,7 +333,7 @@ router.put('/entries', async function(req, res, next) {
   } catch (error) {
     console.log('entry create error:', error, data);
     console.log('data:', data);
-    return res.json({'error': 'entry create error ' + error});
+    return res.status(400).json({'error': 'entry create error ' + error});
   }        
 
 });
@@ -343,11 +343,12 @@ router.put('/transactions', async function(req, res, next) {
   var html_report = `PUT /transactions request with:\n${JSON.stringify(req.body)}`;
   var txt_report = html_report;
   await mail_utils.send_report(html_report, txt_report, "Transaction logged");
+  console.log(html_report);
   // get codes from request body
   const required = ['date', 'amount', 'description', 'by'];
   for (const f of required) {
     if (!req.body[f]) {
-      return res.json({'error': `no ${f} provided` });
+      return res.status(400).json({'error': `no ${f} provided` });
     }
   }
 
@@ -447,6 +448,85 @@ router.delete('/transactions/:transaction_id', async function (req, res) {
   } catch (error) {
     console.log('delete error:', error);
     res.json ({'error': error});
+  }
+});
+
+router.post('/transactions/:transaction_id', async function(req, res) {
+  var html_report = `POST /transactions request with:\n${JSON.stringify(req.body)}`;
+  var txt_report = html_report;
+  await mail_utils.send_report(html_report, txt_report, "Transaction logged");
+
+  console.log(html_report);
+  const transaction_id = parseInt(req.params['transaction_id'], 10);
+
+  // get codes from request body
+  const required = ['date', 'amount', 'description', 'by'];
+  for (const f of required) {
+    if (!req.body[f]) {
+      return res.status(400).json({'error': `no ${f} provided` });
+    }
+  }
+
+  // validate date
+  const date = new Date(req.body['date']);
+  if (date == 'Invalid Date') {
+    return res.status(400).json({'error': `invalid date` });
+  }
+
+  // validate amount 
+  const amount = +req.body['amount'];
+  if (Number.isNaN(amount)) {
+    return res.status(400).json({'error': `invalid amount` });
+  }
+
+  const description = req.body['description'].toLowerCase();
+  let comments = null;
+  if (req.body['comments']) {
+    comments = req.body['comments'].toLowerCase();
+  }
+
+  let transaction_user = null;
+  const uname = req.body['by'].toLowerCase();
+  try {
+    transaction_user = await prisma.user.findUnique({
+      'where': {
+          'username': uname
+      }
+    });
+    if (transaction_user === null) {
+      transaction_user = await prisma.user.create({
+        'data': {
+            'username': uname,
+            'hashed_password': '',
+            'is_admin': false,
+            'is_member': true
+        }
+      });  
+    }
+  } catch (error) {
+    console.log('user creation error:', error);
+    return res.status(400).json({'error': error });
+  }
+
+  const data = {
+    'date': date,
+    'amount': amount,
+    'description': description,
+    'user': {'connect': {'id': transaction_user.id}},
+    'comments': comments
+  }; 
+  console.log('data:', data);
+  let result = {};
+  try {
+    result = await prisma.transaction.update({
+      'where': {id: transaction_id},
+      'data': data
+    });
+    return res.json(result);
+  } catch (error) {
+    console.log('transaction update error:', error, data);
+    console.log('data:', data);
+    return res.status(400).json({'error': 'transaction update error ' + error});
   }
 });
 
