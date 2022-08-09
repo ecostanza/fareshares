@@ -174,15 +174,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let filtered = entries.slice();
         // look for the most recent 'bank balance' 
+        // console.log(filtered.map(e => e.description));
 
         const balance_index = filtered.findIndex(function (entry) {
             return entry.description.toLowerCase() === 'bank balance';
         });
-
+        // console.log('balance_index:', balance_index);
         // slice from the most recent 'bank balance' (included)
-        if (balance_index > 0) {
+        if (balance_index >= 0) {
             filtered = filtered.slice(0, balance_index + 1);
         }
+
+        // console.log(filtered.map(e => e.description));
 
         const sum = filtered.reduce(function (s, e) {
             // console.log(`e: ${e}, s: ${s}`);
