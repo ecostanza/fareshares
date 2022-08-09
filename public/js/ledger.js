@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             // something went wrong
             console.log('something went wrong');
-            alert('Sorry, something went wrong, please contact Enrico.');
+            // alert('Sorry, something went wrong, please contact Enrico.');
         }
 
         // console.log(date, amount, description, comments);
