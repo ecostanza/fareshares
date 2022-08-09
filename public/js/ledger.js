@@ -168,12 +168,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function render (entries) {
         // console.log(entries);
+        
+        // TODO: check that the transactions 
+        // are always in reverse chronological order
 
-        const sum = entries.reduce(function (s, e) {
+        let filtered = entries.slice();
+        // look for the most recent 'bank balance' 
+
+        const balance_index = filtered.findIndex(function (entry) {
+            return entry.description.toLowerCase() === 'bank balance';
+        });
+
+        // slice from the most recent 'bank balance' (included)
+        if (balance_index > 0) {
+            filtered = filtered.slice(0, balance_index + 1);
+        }
+
+        const sum = filtered.reduce(function (s, e) {
             // console.log(`e: ${e}, s: ${s}`);
             return s + +e.amount;
         }, 0).toFixed(2);
-        // console.log(sum);
+        // console.log('sum:', sum);
         d3.select('span#balance').text(`£${sum}`);
 
         d3.select('tbody')
@@ -195,6 +210,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 const fields = [
                     'date_str', 'amount', 'description', 'by', 'comments'
                 ];
+                let bold = false;
+                if (d.description.toLowerCase() === 'bank balance') {
+                    bold = true;
+                }
                 for (const f of fields) {
                     //console.log(f);
                     if (f === 'comments') {
@@ -202,9 +221,17 @@ document.addEventListener("DOMContentLoaded", function() {
                         if (d[f]) {
                             value = d[f];
                         }
-                        html += `<td class="d-none d-md-table-cell">${value}</td>`
+                        if (bold === true) {
+                            html += `<td class="d-none d-md-table-cell"><strong>${value}</strong></td>`
+                        } else {
+                            html += `<td class="d-none d-md-table-cell">${value}</td>`
+                        }
                     } else {
-                        html += `<td>${d[f]}</td>`
+                        if (bold === true) {
+                            html += `<td><strong>${d[f]}</strong></td>`
+                        } else {
+                            html += `<td>${d[f]}</td>`
+                        }
                     }
                     // console.log(i.header(), i.key(d));
                 }
