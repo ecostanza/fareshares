@@ -342,36 +342,53 @@ document.addEventListener("DOMContentLoaded", function() {
                 return e;
             });
 
+            let descriptions = [...new Set(_all_entries.map(function (e) {
+                return e.description.toLowerCase();
+            }))];
+            descriptions = descriptions.map(function (d) {
+                return {
+                    'label': d, 
+                    'value': d
+                };
+            })
             const description_input = d3.select('input#description_autocomplete');
             const description_ac = new Autocomplete(description_input.node(), {
-                data: _all_entries.map(function (e) {return {'label': e.description.toLowerCase(), 'value': e.description.toLowerCase()};}),
+                data: descriptions,
                 // maximumItems: 5,
                 onSelectItem: ({label, value}) => {
                     console.log("user selected:", label, value);
                 }
             });
 
+            let usernames = [...new Set(_all_entries.map(function (e) {
+                return e.user.username;
+            }))];
+            usernames = usernames.map(function (u) {
+                return { 'label': u, 'value': u };
+            });
             const by_input = d3.select('input#by');
             const by_ac = new Autocomplete(by_input.node(), {
-                data: _all_entries.map(function (e) {return {'label': e.user.username.toLowerCase(), 'value': e.user.username.toLowerCase()};}),
+                data: usernames,
                 // maximumItems: 5,
                 onSelectItem: ({label, value}) => {
                     console.log("user selected:", label, value);
                 }
             });
 
-            //*
-            const comments = _all_entries.filter(function (e) {
-                if (e.comments === undefined || e.comments === null) {
+            let comments = [...new Set(_all_entries.map(function (e) {
+                return e.comments;
+            }))];
+            comments = comments.filter(function (c) {
+                if (c === undefined || c === null) {
                     return false;
                 } else {
                     return true;
                 }
-            }).map(function (e) {
-                return {'label': e.comments.toLowerCase(), 'value': e.comments.toLowerCase()};
+            }).map(function (c) {
+                return {'label': c.toLowerCase(), 'value': c.toLowerCase()};
             });
-            console.log('comments mapped:', _all_entries.map(e => e.comments));
-            console.log('comments:', comments);
+            // console.log('comments mapped:', _all_entries.map(e => e.comments));
+            // console.log('comments:', comments);
             const comments_input = d3.select('input#comments');
             const comment_ac = new Autocomplete(comments_input.node(), {
                 data: comments,
