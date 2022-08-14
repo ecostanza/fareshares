@@ -89,9 +89,9 @@ document.addEventListener("DOMContentLoaded", function() {
     function collect_form_data () {
         const date = date_input.node().value;
         let amount = +amount_input.node().value;
-        const by = by_input.node().value;
-        const description = description_input.node().value;
-        const comments = d3.select('input#comments').node().value;
+        const by = by_input.node().value.toLowerCase();
+        const description = description_input.node().value.toLowerCase();
+        const comments = d3.select('input#comments').node().value.toLowerCase();
         const in_out = d3.select('input[name="inOutRadio"]:checked').node().value;
         if (in_out === 'in') {
             amount = Math.abs(amount);
@@ -341,6 +341,47 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 return e;
             });
+
+            const description_input = d3.select('input#description_autocomplete');
+            const description_ac = new Autocomplete(description_input.node(), {
+                data: _all_entries.map(function (e) {return {'label': e.description.toLowerCase(), 'value': e.description.toLowerCase()};}),
+                // maximumItems: 5,
+                onSelectItem: ({label, value}) => {
+                    console.log("user selected:", label, value);
+                }
+            });
+
+            const by_input = d3.select('input#by');
+            const by_ac = new Autocomplete(by_input.node(), {
+                data: _all_entries.map(function (e) {return {'label': e.user.username.toLowerCase(), 'value': e.user.username.toLowerCase()};}),
+                // maximumItems: 5,
+                onSelectItem: ({label, value}) => {
+                    console.log("user selected:", label, value);
+                }
+            });
+
+            //*
+            const comments = _all_entries.filter(function (e) {
+                if (e.comments === undefined || e.comments === null) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }).map(function (e) {
+                return {'label': e.comments.toLowerCase(), 'value': e.comments.toLowerCase()};
+            });
+            console.log('comments mapped:', _all_entries.map(e => e.comments));
+            console.log('comments:', comments);
+            const comments_input = d3.select('input#comments');
+            const comment_ac = new Autocomplete(comments_input.node(), {
+                data: comments,
+                // maximumItems: 5,
+                onSelectItem: ({label, value}) => {
+                    console.log("user selected:", label, value);
+                }
+            });
+            // */
+
             // render_header();
             render(_all_entries);
         } catch (error) {
