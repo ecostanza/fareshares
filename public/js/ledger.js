@@ -33,6 +33,8 @@ document.addEventListener("DOMContentLoaded", function() {
         d3.select('button#deleteButton').style('display', 'none');
         // set add button to create
         d3.select('button#addButton').on('click', create_event);
+
+        d3.select('#addButton').attr('disabled', true);
     }
 
     const date_sel = document.querySelector('input#date');
