@@ -88,22 +88,55 @@ function do_find_product (code, supplier) {
 
     const find_infinity_item = function (row, code_to_find) {
         if (row['Product code'].toLowerCase() === code_to_find) {
+            // console.log("*** infinity row ***");
             // console.log(row);
+            // console.log("*** end row ***");
             found_item = row;
             found_item['full description'] = row['product description'].toLowerCase();
             found_item['brand'] = row['brand'].toLowerCase();
             found_item['is_organic'] = row['organic'] === 'organic';
             found_item['add_vat'] = row['Vat Marker'] === 'V';
-            found_item['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
-            found_item['units case'] = parseInt(found_item['units case'], 10);
-            found_item['pk size'] = parseInt(found_item['pk size'], 10);
+            // the infinity catalogue seems to keep changing between using
+            // 'concatprodsize for export' and 'concatprodsize as text' 
+            if (row.hasOwnProperty('concatprodsize for export')) {
+                found_item['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
+            } else {
+                found_item['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
+            }
+            // console.log(found_item['pack size']);
+            found_item['pack size'] = found_item['pack size'].toLowerCase().replace(/\s/g, '');
+            const matches = [...found_item['pack size'].matchAll(/(\d+)\s?x\s?([.\d]+)(\w*)/g)][0];
+            // console.log('matches:', matches);
+            if (matches) {
+                found_item['units case'] = parseInt(matches[1], 10);
+                found_item['pack size'] = parseInt(matches[2], 10);
+                found_item['unit'] = matches[3];
+            } else {
+                // console.log(found_item['pack size']);
+                try {
+                    const alt_matches = [...found_item['pack size'].matchAll(/([.\d]+)\s?(\w*)/g)][0];
+                    found_item['units case'] = 1;
+                    found_item['pack size'] = parseInt(alt_matches[1], 10);
+                    found_item['unit'] = alt_matches[2];
+                } catch (error) {
+                    found_item['units case'] = 1;
+                    found_item['pack size'] = 1;
+                    found_item['unit'] = '';
+                }
+            }
+            // console.log(found_item['pack size']);
+
+            // found_item['units case'] = parseInt(found_item['units case'], 10);
+            // found_item['pk size'] = parseInt(found_item['pk size'], 10);
             found_item['Case price'] = parseFloat(found_item['Case price'], 10);
         }
     };
     
     const find_suma_item = function (row, code_to_find) {
         if (row['PLCDE'].toLowerCase() === code_to_find) {
+            // console.log("*** suma row ***");
             // console.log(row);
+            // console.log("*** end row ***");
             found_item = row;
             found_item['full description'] = row['PLDESC'].toLowerCase() + ' ' + row['PLTEXT'].toLowerCase();
             found_item['is_organic'] = row['O'] === 'O';
@@ -187,7 +220,8 @@ const infinity_lut = {
     'vat': 'add_vat',
     'organic': 'is_organic',
     'n_items': 'units case',
-    'item_size': 'pk size',
+    // 'item_size': 'pk size',
+    'item_size': 'pack size',
     'item_unit': 'unit'
     };
 
@@ -226,7 +260,7 @@ const do_get_product_data = async function (product_code, supplier, data) {
 };
 
 const get_product_data = async function (product_code, supplier, data) {
-    console.log('get_product_data');
+    console.log(`get_product_data: ${product_code}, ${supplier}`);
     let filename = 'infinity_catalogue.csv';
     if (supplier.toLowerCase() === 'suma') {
         filename = 'suma_catalogue.csv';
@@ -294,7 +328,17 @@ function do_find_matches (product_details, supplier) {
             };
             row['full description'] = row['product description'].toLowerCase();
             // console.log();
-            row['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
+            
+            // the infinity catalogue seems to keep changing between using
+            // 'concatprodsize for export' and 'concatprodsize as text' 
+            // row['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
+            // row['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
+            if (row.hasOwnProperty('concatprodsize for export')) {
+                suma_item['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
+            } else {
+                suma_item['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
+            }
+            
             if (row['pack size'] === suma_item['pack size']) {
                 current['size_match'] = true;
             }
@@ -420,4 +464,18 @@ async function test () {
     
 }
 
+async function test2() {
+    let data = {};
+    // const infinity_code = '253025';
+    const infinity_code = '253018';
+    // const infinity_code = '251621'; 
+    get_product_data(infinity_code, 'infinity', data)
+    console.log(data['item_size']);
+    // const suma_code = 'gh205';
+    // get_product_data(suma_code, 'suma', data)
+    // console.log(data['item_size']);
+    // Tahini,tahini white org,253025,null
+}
+
 // test();
+// test2();
