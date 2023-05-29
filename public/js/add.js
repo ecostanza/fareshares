@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         console.log(product_id, supplier);
 
-        const url = `${rootUrl}//matching_products/?product_id=${product_id}&supplier=${supplier}`;
+        const url = `${rootUrl}/matching_products/?product_id=${product_id}&supplier=${supplier}`;
         d3.json(url, {
             method: 'GET', 
             headers: { "Content-Type": "application/json" }
