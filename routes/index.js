@@ -25,7 +25,9 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 //const bcrypt = require('bcrypt');
 const mail_utils = require('../mail_utils');
-
+// let rootUrl = '/fs';
+const url_utils = require('../url_utils')
+const rootUrl = url_utils.root_url;
 
 router.use(function (req, res, next) {
   res.locals['user'] = {'username': req.user.username, 'is_admin': req.user.is_admin};
@@ -57,7 +59,7 @@ router.use(function (req, res, next) {
       & req.url.startsWith('/transactions') === false
       & req.url.startsWith('/entries') === false
       ) {
-      return res.redirect('/');
+      return res.redirect(`${rootUrl}/`);
     }
 
     res.locals['menu_items'] = allowed_items;
@@ -68,9 +70,9 @@ router.use(function (req, res, next) {
 
 
 async function render_pricelist(interactive, req, res, next) {
-  let nav_url = '/manage_pricelist';
+  let nav_url = `${rootUrl}/manage_pricelist`;
   if (interactive === false) {
-    nav_url = '/';
+    nav_url = `${rootUrl}/`;
   }
   res.render('pricelist.html', { 
     'title': 'Pricelist',
@@ -81,7 +83,7 @@ async function render_pricelist(interactive, req, res, next) {
 }
 
 router.get('/', function(req, res, next) {
-  res.redirect('/ledger');
+  res.redirect(`${rootUrl}/ledger`);
 });
 
 // TODO: change to /printable_pricelist ?
@@ -107,7 +109,11 @@ router.get('/pricelist_csv', async function (req, res, next) {
   // Category,Description,Infinity,Suma
   let csv = "Category,Description,Infinity,Suma\n";
   entries.forEach(function (e) {
-    csv += `${e.category.name},${e.infinity_desc},${e.infinity},${e.suma}\n`;
+    let desc = e.suma_desc;
+    if (e.infinity_desc) {
+      desc = e.infinity_desc;
+    }
+    csv += `${e.category.name},${desc},${e.infinity},${e.suma}\n`;
   });
 
   res.header('Content-Type', 'text/csv');
@@ -187,7 +193,7 @@ router.get('/matching_products/', function(req, res, next) {
 });
 
 router.get('/favicon.ico', function(req, res) {
-  res.redirect('/static/favicon.ico');
+  res.redirect(`${rootUrl}/static/favicon.ico`);
 })
 
 // TODO: move API calls to /api/ and to separate file?

@@ -30,10 +30,15 @@ const indexRouter = require('./routes/index');
 // const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 
+// let rootUrl = '/';
+const url_utils = require('./url_utils')
+const rootUrl = url_utils.root_url;
+
 // from https://stackoverflow.com/a/54623372/6872193
 var ensureAuthenticated = function(req, res, next) {
+    console.log('ensureAuthenticated');
     if (req.isAuthenticated()) return next();
-    else res.redirect('/login')
+    else res.redirect(rootUrl + '/login')
 }
 
 const app = express();
@@ -43,12 +48,18 @@ nunjucks.configure('views', {
     express: app
 });
 
+app.use(function(req, res, next){
+    res.locals.rootUrl = rootUrl;
+    next();
+});
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
-app.use('/static', express.static(path.join(__dirname, 'public')));
+app.use(`${rootUrl}/static`, express.static(path.join(__dirname, 'public')));
+// app.use('/static', express.static(path.join(__dirname, 'public')));
 
 app.use(cookieSession({
     name: 'session',
@@ -58,17 +69,37 @@ app.use(cookieSession({
     // Cookie Options
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
+
+// based on https://github.com/jaredhanson/passport/issues/904#issuecomment-1307558283
+// register regenerate & save after the cookieSession middleware initialization
+app.use(function(request, response, next) {
+    if (request.session && !request.session.regenerate) {
+        request.session.regenerate = (cb) => {
+            console.log('session.regenerate');
+            cb()
+        }
+    }
+    if (request.session && !request.session.save) {
+        request.session.save = (cb) => {
+            console.log('session.save');
+            cb()
+        }
+    }
+    next()
+})
+
 app.use(passport.authenticate('session'));
 
 app.use(passport.initialize());
 app.use(passport.session());
 // app.use(authenticationMiddleware(allowUrl));
 
-app.use('/', authRouter);
+app.use(`${rootUrl}/`, authRouter);
+// app.use('fs/', authRouter);
 // From here on, all routes need authorization:
 app.use(ensureAuthenticated);
 
-app.use('/', indexRouter);
+app.use(`${rootUrl}/`, indexRouter);
 // app.use('/users', usersRouter);
 
 module.exports = app;

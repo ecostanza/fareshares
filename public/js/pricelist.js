@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const tr = d3.select(this.parentNode.parentNode);
             const db_id = tr.attr('data-dbid');
             console.log(`change entry ${db_id}`, this.value);
-            const url = `/entries/${db_id}`;
+            const url = `${rootUrl}/entries/${db_id}`;
             try {
                 const response = await d3.json(url, {
                     method: 'POST', 
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function() {
             d3.select('button#confirmDeleteButton').on('click', async function (event) {
                 // TODO: delete item
                 console.log(`delete entry ${db_id}`);
-                const url = `/entries/${db_id}`;
+                const url = `${rootUrl}/entries/${db_id}`;
                 try {
                     const response = await fetch(url, {
                     method: 'DELETE', 
@@ -277,11 +277,17 @@ document.addEventListener("DOMContentLoaded", function() {
             value: function (e) {
                 if (e['suma_price'] && e['infinity_price']) {
                     return Math.abs(e['suma_price'] - e['infinity_price']).toFixed(2);
+                    // let divider = e['item_size'];
+                    // if (e.n_items > 1) {
+                    //     divider = e['n_items'];
+                    // }
+                    // return Math.abs(e['suma_price']/divider - e['infinity_price']/divider).toFixed(2);
                 } else {
                     return '';
                 }
             },
             header: 'Suma - Infinity Difference'
+            //header: 'Suma - Infinity Difference (per unit)'
         }),
         field({
             key: 'preferred_supplier',
@@ -604,7 +610,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     async function load_data () {
-        const url = '/entries';
+        const url = `${rootUrl}/entries`;
         console.log('load_data');
         try {
             const data = await d3.json(url, {

@@ -26,10 +26,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap CSS -->
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{rootUrl}}/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- local imports -->
-    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <link rel="stylesheet" type="text/css" href="{{rootUrl}}/static/css/style.css">
 
     <title>{{ title }}</title>
   </head>
@@ -38,7 +38,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-light bg-light d-print-none">
-        <a class="navbar-brand" href="#">Fareshares</a>
+        <a class="navbar-brand" href="{{rootUrl}}#">Fareshares</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -52,12 +52,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
                 {% else %}
                 class="nav-link" 
                 {% endif %}
-                href="{{item.url}}">{{item.label}}</a>
+                href="{{rootUrl}}{{item.url}}">{{item.label}}</a>
               </li>
             {% endfor %}
           </ul>
           <span class="navbar-text">
-            <a class="nav-link" href="/logout" tabindex="-1" aria-disabled="true">Logout</a>
+            <a class="nav-link" href="{{rootUrl}}/logout" tabindex="-1" aria-disabled="true">Logout</a>
           </span>
           <span class="navbar-text">
             {{ username }}
@@ -88,14 +88,17 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </div>
 
     <!-- Optional JavaScript -->
-    <script src="/static/js/libs/bootstrap.bundle.min.js"></script>
+    <script src="{{rootUrl}}/static/js/libs/bootstrap.bundle.min.js"></script>
 
     <!-- local imports -->
-    <script type="text/javascript" src="/static/js/libs/d3.v6.min.js"></script>
-    <script type="text/javascript" src="/static/js/libs/luxon.min.js"></script>
+    <script type="text/javascript" src="{{rootUrl}}/static/js/libs/d3.v6.min.js"></script>
+    <script type="text/javascript" src="{{rootUrl}}/static/js/libs/luxon.min.js"></script>
 
+    <script type="text/javascript">
+    const rootUrl = '{{rootUrl}}';
+    </script>
     {% block js %}
-    <script type="text/javascript" src="/static/js/index.js"></script>
+    <script type="text/javascript" src="{{rootUrl}}/static/js/index.js"></script>
     {% endblock %}
 
   </body>

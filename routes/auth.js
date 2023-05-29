@@ -29,6 +29,9 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+const url_utils = require('../url_utils')
+const rootUrl = url_utils.root_url;
+
 function verify(username, password, cb) {
     console.log('verify, username:', username, password);
 
@@ -84,13 +87,14 @@ router.post('/login/password', function(req, res, next) {
 });
 
 router.get('/login', function(req, res, next) {
-    console.log('login');
+    console.log('login called');
     res.render('login.html', {'title': 'Login'});
 });
 
 router.get('/logout', function(req, res, next) {
+    console.log('logout called');
     req.session = null;
-    res.redirect('/'); 
+    res.redirect(rootUrl + '/'); 
 });
 
 passport.serializeUser(function(user, cb) {

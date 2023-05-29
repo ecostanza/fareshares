@@ -21,13 +21,15 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 /*eslint no-undef: "error"*/
 /*eslint-env browser*/
 
+// const { root_url } = require("../../url_utils");
+
 document.addEventListener("DOMContentLoaded", function() { 
 
     d3.select('#loginButton').on('click', function () {
         const username = d3.select('#usernameInput').node().value;
         const password = d3.select('#passwordInput').node().value;
 
-        const url = `/login/password`;
+        const url = `${rootUrl}/login/password`;
         d3.json(url, {
             method: 'POST', 
             headers: { "Content-Type": "application/json; charset=UTF-8" },
@@ -40,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (data['result'] === 'success') {
                 d3.selectAll('input').classed('is-invalid', false);
                 console.log('redirect..');
-                window.location = '/';
+                window.location = `${rootUrl}/`;
             } else {
                 console.log('error detected');
                 // handle failed validation in bootstrap

@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
             add_data['infinity'] = infinity;
             add_data['category_name'] = category;
             add_data['user'] = username;
-            const add_url = '/entries';
+            const add_url = `${rootUrl}/entries`;
             try {
                 const response = await d3.json(add_url, {
                     method: 'PUT', 

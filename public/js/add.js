@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         console.log(product_id, supplier);
 
-        const url = `/matching_products/?product_id=${product_id}&supplier=${supplier}`;
+        const url = `${rootUrl}//matching_products/?product_id=${product_id}&supplier=${supplier}`;
         d3.json(url, {
             method: 'GET', 
             headers: { "Content-Type": "application/json" }
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     // add_data['category_name'] = d3.select('#categorySelect').node().value;
                     add_data['category_name'] = category_autocomplete.node().value;
                     add_data['user'] = 'enrico';
-                    const add_url = '/entries/';
+                    const add_url = `${rootUrl}/entries/`;
                     d3.json(add_url, {
                         method: 'PUT', 
                         headers: { "Content-Type": "application/json; charset=UTF-8" },

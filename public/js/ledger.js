@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const updated_transaction_data = collect_form_data();
         // TODO: post
         console.log(`edit transaction ${_current_entry.id}`, updated_transaction_data);
-        const url = `/transactions/${_current_entry.id}`;
+        const url = `${rootUrl}/transactions/${_current_entry.id}`;
         try {
             const response = await fetch(url, {
                 method: 'POST', 
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     function create_event () {
         const new_transaction_data = collect_form_data();
-        const url = `/transactions/`;
+        const url = `${rootUrl}//transactions/`;
         let method = 'PUT';
         d3.json(url, {
             method: 'PUT', 
@@ -296,7 +296,7 @@ document.addEventListener("DOMContentLoaded", function() {
             d3.select('button#confirmDeleteButton').on('click', async function (event) {
                 // TODO: delete item
                 console.log(`delete transaction ${_current_entry.id}`);
-                const url = `/transactions/${_current_entry.id}`;
+                const url = `${rootUrl}/transactions/${_current_entry.id}`;
                 try {
                     const response = await fetch(url, {
                     method: 'DELETE', 
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     
     async function load_data () {
-        const url = '/transactions';
+        const url = `${rootUrl}/transactions`;
         console.log('load_data');
         try {
             const data = await d3.json(url, {
