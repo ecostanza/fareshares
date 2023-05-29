@@ -268,26 +268,60 @@ document.addEventListener("DOMContentLoaded", function() {
             key: 'infinity_price',
             header: 'Infinity Price'
         }),
+        //
         field({
-            key: 'suma_price',
-            header: 'Suma Price'
-        }),
-        field({
-            key: 'suma_infinity_diff',
+            key: 'infinity_unit_price',
             value: function (e) {
-                if (e['suma_price'] && e['infinity_price']) {
-                    return Math.abs(e['suma_price'] - e['infinity_price']).toFixed(2);
-                    // let divider = e['item_size'];
-                    // if (e.n_items > 1) {
-                    //     divider = e['n_items'];
-                    // }
-                    // return Math.abs(e['suma_price']/divider - e['infinity_price']/divider).toFixed(2);
+                if (e['infinity_price']) {
+                    let divider = e['item_size'];
+                    if (e.n_items > 1) {
+                        divider = e['n_items'];
+                    }
+                    return (e['infinity_price']/divider).toFixed(2);
                 } else {
                     return '';
                 }
             },
-            header: 'Suma - Infinity Difference'
-            //header: 'Suma - Infinity Difference (per unit)'
+            header: 'Infinity Unit Price'
+        }),
+        //
+        field({
+            key: 'suma_price',
+            header: 'Suma Price'
+        }),
+        //
+        field({
+            key: 'suma_unit_price',
+            value: function (e) {
+                if (e['suma_price']) {
+                    let divider = e['item_size'];
+                    if (e.n_items > 1) {
+                        divider = e['n_items'];
+                    }
+                    return (e['suma_price']/divider).toFixed(2);
+                } else {
+                    return '';
+                }
+            },
+            header: 'Suma Unit Price'
+        }),
+        //
+        field({
+            key: 'suma_infinity_diff',
+            value: function (e) {
+                if (e['suma_price'] && e['infinity_price']) {
+                    let divider = e['item_size'];
+                    if (e.n_items > 1) {
+                        divider = e['n_items'];
+                    }
+                    return Math.abs(e['suma_price']/divider - e['infinity_price']/divider).toFixed(2);
+                    // return Math.abs(e['suma_price'] - e['infinity_price']).toFixed(2);
+                } else {
+                    return '';
+                }
+            },
+            // header: 'Suma - Infinity Difference'
+            header: 'Suma - Infinity Difference (per unit)'
         }),
         field({
             key: 'preferred_supplier',
