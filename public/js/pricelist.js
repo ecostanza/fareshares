@@ -133,6 +133,33 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
 
+            if (_selected_fields.map(f => f.key).includes('infinity')) {
+                const infinity_value_str = d3.select('select.infinity-filter').node().value;
+                if (infinity_value_str === 'true') {
+                    filtered_entries = filtered_entries.filter(function (e) {
+                        return e['infinity'] !== null;
+                    });
+                } else if (infinity_value_str === 'false') {
+                    filtered_entries = filtered_entries.filter(function (e) {
+                        return e['infinity'] === null;
+                    });
+                }
+            }
+
+            if (_selected_fields.map(f => f.key).includes('suma')) {
+                const suma_value_str = d3.select('select.suma-filter').node().value;
+                if (suma_value_str === 'true') {
+                    filtered_entries = filtered_entries.filter(function (e) {
+                        return e['suma'] !== null;
+                    });
+                } else if (suma_value_str === 'false') {
+                    filtered_entries = filtered_entries.filter(function (e) {
+                        return e['suma'] === null;
+                    });
+                }
+            }
+
+
             if (_selected_fields.map(f => f.key).includes('vat')) {
                 const vat_value_str = d3.select('select.vat-filter').node().value;
                 let vat_value = null;
@@ -176,6 +203,14 @@ document.addEventListener("DOMContentLoaded", function() {
             filter_entries();
         });
         
+        d3.select('select.infinity-filter').on('change', function () {
+            filter_entries();
+        });
+
+        d3.select('select.suma-filter').on('change', function () {
+            filter_entries();
+        });
+
         d3.select('select.vat-filter').on('change', function () {
             filter_entries();
         });
@@ -222,11 +257,39 @@ document.addEventListener("DOMContentLoaded", function() {
         // }),
         field({
             key: 'infinity',
-            header: 'Infinity'
+            header: 'Infinity',
+            interactive_header: function () {
+                let html = `
+                <select class="form-select-sm infinity-filter" aria-label="Updated on select">\n
+                `;
+                for (const option of [
+                {'value': "any", "label": "any"}, 
+                {'value': "true", "label": "yes"}, 
+                {'value': "false", "label": "no"}] ) {
+                    html += `<option value="${option.value}"\n`;
+                    html += `>${option.label}</option>`;
+                }
+                html += '</select>';
+                return html;
+            }()
         }),
         field({
             key: 'suma',
-            header: 'Suma'
+            header: 'Suma',
+            interactive_header: function () {
+                let html = `
+                <select class="form-select-sm suma-filter" aria-label="Updated on select">\n
+                `;
+                for (const option of [
+                {'value': "any", "label": "any"}, 
+                {'value': "true", "label": "yes"}, 
+                {'value': "false", "label": "no"}] ) {
+                    html += `<option value="${option.value}"\n`;
+                    html += `>${option.label}</option>`;
+                }
+                html += '</select>';
+                return html;
+            }()
         }),
         field({
             key: 'brand',
