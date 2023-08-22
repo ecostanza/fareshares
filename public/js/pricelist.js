@@ -502,6 +502,9 @@ document.addEventListener("DOMContentLoaded", function() {
             key: 'preferred_supplier',
             value: function (e) {
                 // console.log('preferred_supplier:', e.preferred_supplier);
+                if (e['infinity'] === null & e['suma'] === null) {
+                    return '';
+                }
                 if (!e['suma']) {
                     return 'Infinity';
                 } else if (!e['infinity']) {
@@ -592,6 +595,9 @@ document.addEventListener("DOMContentLoaded", function() {
         field({
             'key': 'fareshares_price',
             'value': function (e) {
+                if (e['infinity'] === null & e['suma'] === null) {
+                    return '';
+                }
                 if (e['fareshares_price']) {
                     return `<span class="fareshares_price"><b>${e['fareshares_price'].toFixed(2)}</b></span>`;
                 } else {
