@@ -5,3 +5,5 @@ infinity_catalogue*.csv
 suma_catalogue*.csv
 tmp.txt
 package-lock.json
+*dump.csv
+*dump*.csv
