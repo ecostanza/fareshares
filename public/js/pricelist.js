@@ -70,33 +70,145 @@ document.addEventListener("DOMContentLoaded", function() {
             const tr = d3.select(this.parentNode.parentNode);
             const db_id = tr.attr('data-dbid');
             console.log(db_id); 
-            // TODO: prompt for confirmation
+            const entry = JSON.parse(tr.attr('data-entry'));
+            console.log(entry); 
+
+            d3.select('input#infinityID').property('value', entry['infinity']);
+            d3.select('input#sumaID').property('value', entry['suma']);
+            d3.select('input#category_autocomplete').property('value', entry['category']['name']);
+            d3.select('select#preferred_supplier_edit').property('value', entry['preferred_supplier']);
+
+            // show edit modal
             const modal = new bootstrap.Modal(
-                document.getElementById('confirmDeleteModal'), {backdrop: 'static'});
+                document.getElementById('editModal'), {backdrop: 'static'});
             modal.show();
 
-            d3.select('button#confirmDeleteButton').on('click', async function (event) {
-                // TODO: delete item
-                console.log(`delete entry ${db_id}`);
+            document.getElementById('editModal').addEventListener('hide.bs.modal', function () {
+                d3.select('input#infinityID').property('value', '');
+                d3.select('input#sumaID').property('value', '');
+                d3.select('input#category_autocomplete').property('value', '');
+                d3.select('select#preferred_supplier_edit').property('value', '');    
+            });
+
+            // TODO: handle the save button
+            d3.select('button#saveEditsButton').on('click', async function (event) {
+                // TODO: first check that the infinity ID and suma ID are valid (if present)
+                console.log(`save entry ${db_id}`);
+                const infinity_id = d3.select('input#infinityID').property('value');
+                console.log(`infinity_id ${infinity_id}`, infinity_id);
+                if (infinity_id !== "") {
+                    const inifinity_check_url = `${rootUrl}/matching_products/?product_id=${infinity_id}&supplier=infinity`;
+                    try {
+                        const inifinity_check_response = await d3.json(inifinity_check_url, {
+                            method: 'GET', 
+                            headers: { "Content-Type": "application/json; charset=UTF-8" }
+                        });
+                        console.log('inifinity_check_response:', inifinity_check_response);
+                        if (inifinity_check_response['error'] === 'not found') {
+                            console.log('error detected');
+                            // handle failed validation in bootstrap
+                            d3.select('input#infinityID').classed('is-invalid', true);
+                            return;
+                        } 
+                    } catch(error) {
+                        console.log('infinity_check error:', error);
+                    }
+                }
+
+                const suma_id = d3.select('input#sumaID').property('value');
+                console.log(`suma_id ${suma_id}`, suma_id);
+                if (suma_id !== "") {
+                    const inifinity_check_url = `${rootUrl}/matching_products/?product_id=${suma_id}&supplier=suma`;
+                    try {
+                        const inifinity_check_response = await d3.json(inifinity_check_url, {
+                            method: 'GET', 
+                            headers: { "Content-Type": "application/json; charset=UTF-8" }
+                        });
+                        console.log('inifinity_check_response:', inifinity_check_response);
+                        if (inifinity_check_response['error'] === 'not found') {
+                            console.log('error detected');
+                            // handle failed validation in bootstrap
+                            d3.select('input#sumaID').classed('is-invalid', true);
+                            return;
+                        } 
+                    } catch(error) {
+                        console.log('suma_check error:', error);
+                    }
+                }
+                
+                // if we get here it means the infinity and suma codes are valid
+                // TODO: then save to DB
+                let edited = {};
+                edited['infinity'] = d3.select('input#infinityID').property('value');
+                if (edited['infinity'] === '') {
+                    edited['infinity'] = 'none';
+                }
+                edited['suma'] = d3.select('input#sumaID').property('value');
+                if (edited['suma'] === '') {
+                    edited['suma'] = 'none';
+                }
+                edited['category_name'] = d3.select('input#category_autocomplete').property('value');
+                edited['preferred_supplier'] = d3.select('select#preferred_supplier_edit').property('value');
+   
                 const url = `${rootUrl}/entries/${db_id}`;
                 try {
-                    const response = await fetch(url, {
-                    method: 'DELETE', 
-                    headers: { "Content-Type": "application/json; charset=UTF-8" }
+                    const response = await d3.json(url, {
+                        method: 'POST', 
+                        'body': JSON.stringify(edited),
+                        headers: { "Content-Type": "application/json; charset=UTF-8" }
                     });
-                    console.log('delete response:', response);
-                    console.log('removing:', this.parentNode.parentNode);
-                    tr.remove();
+                    console.log('post response:', response);
+                    // update row
+                    tr.select('span.fareshares_price').html(
+                        `<b>${ response['fareshares_price'].toFixed(2) }</b>`
+                    );
+                    tr.select('td.infinity').text(response['infinity']);
+                    tr.select('td.suma').text(response['suma']);
+                    tr.select('td.preferred_supplier').text(response['preferred_supplier']);
+                    
+                    // TODO: update local data
+                    tr.attr('data-entry', JSON.stringify(response));
                 } catch(error) {
-                    console.log('delete error:', error);
+                    console.log('post error:', error);
                 }
+                    
                 modal.hide();
             });
 
-            d3.select('button#cancelDeleteButton').on('click', function (event) {
-                modal.hide();
-                console.log('cancel');
-            });
+            // handle delete button
+            // TODO: test!
+            d3.selectAll('#editModal')
+                .selectAll('button#deleteButton')
+                .on('click', function (event) {
+
+                    // prompt for confirmation
+                    const modal = new bootstrap.Modal(
+                        document.getElementById('confirmDeleteModal'), {backdrop: 'static'});
+                    modal.show();
+                    
+                    d3.select('button#confirmDeleteButton').on('click', async function (event) {
+                        // TODO: delete item
+                        console.log(`delete entry ${db_id}`);
+                        const url = `${rootUrl}/entries/${db_id}`;
+                        try {
+                            const response = await fetch(url, {
+                            method: 'DELETE', 
+                            headers: { "Content-Type": "application/json; charset=UTF-8" }
+                            });
+                            console.log('delete response:', response);
+                            console.log('removing:', this.parentNode.parentNode);
+                            tr.remove();
+                        } catch(error) {
+                            console.log('delete error:', error);
+                        }
+                        modal.hide();
+                    });
+
+                    d3.select('button#cancelDeleteButton').on('click', function (event) {
+                        modal.hide();
+                        console.log('cancel');
+                    });
+                });
         });
     }
 
@@ -389,39 +501,16 @@ document.addEventListener("DOMContentLoaded", function() {
         field({
             key: 'preferred_supplier',
             value: function (e) {
-                if (interactive === true) {
-                    if (!e['suma']) {
-                        return 'Infinity';
-                    } else if (!e['infinity']) {
-                        return 'Suma';
-                    } else {
-                        let html = `
-                        <select class="form-select-sm preferred_supplier" aria-label="Preferred supplier select">\n
-                        `;
-                        for (const option of [
-                        {'value': "null", "label": ""}, 
-                        {'value': "suma", "label": "Suma"}, 
-                        {'value': "infinity", "label": "Infinity"}] ) {
-                            html += `<option value="${option.value}"\n`;
-                            if (option.value === e.preferred_supplier ) {
-                                html += 'selected';
-                            }
-                            html += `>${option.label}</option>`;
-                        }
-                        html += '</select>';
-                        return html;
-                    }
+                // console.log('preferred_supplier:', e.preferred_supplier);
+                if (!e['suma']) {
+                    return 'Infinity';
+                } else if (!e['infinity']) {
+                    return 'Suma';
                 } else {
-                    if (!e['suma']) {
-                        return 'Infinity';
-                    } else if (!e['infinity']) {
-                        return 'Suma';
-                    } else {
-                        if (e.preferred_supplier === null) {
-                            return '';
-                        }
-                        return e.preferred_supplier;
+                    if (e.preferred_supplier === null) {
+                        return '';
                     }
+                    return e.preferred_supplier;
                 }
             },
             header: 'Pref. Supplier'
@@ -519,16 +608,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // delete button
         _all_fields.push(field({
-            'key': 'delete_button',
+            'key': 'edit_button',
             'value': function (e) {
                 let html = `
-                <button class="btn btn-danger btn-sm" type="button">
-                Del.
+                <button class="btn btn-primary btn-sm" type="button">
+                Edit
                 </button>
                 `;
                 return html;
             },
-            'header': 'Delete'
+            'header': 'Edit'
         }));
     }
 
@@ -605,6 +694,9 @@ document.addEventListener("DOMContentLoaded", function() {
                         checked = '';
                     }
                 } catch (error) {
+                    fields[d.key] = {};
+                    fields[d.key]['show'] = true;
+                    _settings['fields'] = fields;
                     console.log(error);
                 }
             }
@@ -671,11 +763,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 .append('tr')
                 .attr('class', 'entry')
                 .attr('data-dbid', function (d) { return d.id; })
+                .attr('data-entry', function (d) { return JSON.stringify(d); })
                 .html(function (d) {
                     // console.log(d);
                     let html = '';
                     for (const i of _selected_fields) {
-                        html += `<td>${i.value(d)}</td>`
+                        html += `<td class="${i.key}">${i.value(d)}</td>`
                         // console.log(i.header(), i.key(d));
                     }
                     return html;

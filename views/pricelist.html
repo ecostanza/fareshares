@@ -81,6 +81,66 @@ this program. If not, see <http://www.gnu.org/licenses/>.
       </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Edit item</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editForm">
+            <fieldset id="editFormFieldset">
+            <div class="mb-3">
+              <label for="infinityID" class="form-label">Infinity ID</label>
+              <input type="text" class="form-control needs-validation" id="infinityID" aria-describedby="infinityIDHelp" required>
+              <div id="infinityIDHelp" class="form-text">The product code from Infinity.</div>
+              <div class="invalid-feedback">
+                Product code not found from infinity.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="sumaID" class="form-label">Suma ID</label>
+              <input type="text" class="form-control needs-validation" id="sumaID" aria-describedby="sumaIDHelp" required>
+              <div id="sumaIDHelp" class="form-text">The product code from suma.</div>
+              <div class="invalid-feedback">
+                Product code not found from suma.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="category_autocomplete" class="form-label">Category:</label>
+              <input type="text" id="category_autocomplete" class="form-control" >
+              <div class="invalid-feedback">
+                Please select a category.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="preferred_supplier_edit" class="form-label">Preferred Supplier:</label>
+              <select id="preferred_supplier_edit" class="form-select-sm preferred_supplier" aria-label="Preferred supplier select">
+                <option value="none" ></option>
+                <option value="infinity" >Infinity</option>
+                <option value="suma" >Suma</option>
+              </select>
+            </div>
+
+            </fieldset>
+            </form>
+
+            <button type="button" id="deleteButton" class="btn btn-danger" data-bs-dismiss="modal">Delete</button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="cancelEditButton" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" id="saveEditsButton" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
       <table class="table">
       <thead>
       </thead>

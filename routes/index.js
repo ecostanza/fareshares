@@ -216,29 +216,76 @@ router.delete('/entries/:entry_id', async function (req, res) {
 router.post('/entries/:entry_id', async function (req, res) {
   // updated 
   const entry_id = parseInt(req.params['entry_id'], 10);
-  const expected_fields = ['preferred_supplier', 'category_name'];
+  const expected_fields = [
+    'infinity',
+    'suma',
+    'preferred_supplier'
+  ];
   const data = {};
 
-  for (const k in expected_fields) {
-    const field = expected_fields[k];
+  expected_fields.forEach(function (field) {
+    // const field = expected_fields[k];
 
     if (req.body[field]) {
       data[field] = req.body[field];
     }
-  }
-  
+  });
 
+  if (data['infinity'] === 'none') {
+    data['infinity'] = null;
+  }
+  if (data['suma'] === 'none') {
+    data['suma'] = null;
+  }
+
+  console.log(data);
+
+  // TODO: deal with 'category_name'
+  let category = null;
+  try {
+    category = await get_or_create_category(req.body['category_name']);
+    console.log('category:', category);
+  } catch (error) {
+    console.log('category error:', error);
+    return res.status(400).json({'error': error });
+  }
+
+  data['category'] = {'connect': {'id': category.id}};
+  data['updatedBy'] = req.body['user'];
+  
   try {
     const result = await prisma.entry.update({
       'where': {id: entry_id},
       'data': data
     });
 
-    catalog_utils.calculate_price(result);
+    // TODO: re-calculate price for this tiem (the following does not work)
+    try {
+      if (data['infinity'] !== null) {
+        await catalog_utils.get_product_data(data['infinity'], 'infinity', data);
+        console.log(data);
+      }
+    } catch (error) {
+      console.log('get product data (infinity) error:', error);
+    }
+    try {
+      if (data['suma'] !== null) {
+        await catalog_utils.get_product_data(data['suma'], 'suma', data);
+        console.log(data);
+      }
+    } catch (error) {
+      console.log('get product data (suma) error:', error);
+    }    
+
+    catalog_utils.calculate_price(data);
+    console.log(data);
 
     const price_result = await prisma.entry.update({
       'where': {id: entry_id},
-      'data': result
+      'include': {
+        'category': true,
+      },
+      'data': data
     });
 
     res.json(price_result);
@@ -269,6 +316,30 @@ router.get('/entries', async function (req, res, next) {
 
 });
 
+async function get_or_create_category(category_name) {
+  category = await prisma.category.findUnique({
+    'where': {
+        'name': category_name
+    }
+  });
+  if (category === null) {
+    const all_categories = await prisma.category.findMany({
+      'where': {}
+    });
+    let order = Math.max(...all_categories.map(c => c.sort_order)) + 1;
+    if (all_categories.length === 0) {
+      order = 1;
+    }
+    category = await prisma.category.create({
+      'data': {
+          'name': category_name,
+          'sort_order': order
+      }
+    });  
+  }
+  return category;
+}
+
 router.put('/entries', async function(req, res, next) {
   // get codes from request body
   const infinity_code = req.body['infinity'].toLowerCase();
@@ -280,26 +351,7 @@ router.put('/entries', async function(req, res, next) {
 
   let category = null;
   try {
-    category = await prisma.category.findUnique({
-      'where': {
-          'name': category_name
-      }
-    });
-    if (category === null) {
-      const all_categories = await prisma.category.findMany({
-        'where': {}
-      });
-      let order = Math.max(...all_categories.map(c => c.sort_order)) + 1;
-      if (all_categories.length === 0) {
-        order = 1;
-      }
-      category = await prisma.category.create({
-        'data': {
-            'name': category_name,
-            'sort_order': order
-        }
-      });  
-    }
+    category = get_or_create_category(category_name);
   } catch (error) {
     console.log('category error:', error);
     return res.status(400).json({'error': error });
