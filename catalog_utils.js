@@ -433,6 +433,9 @@ function calculate_price (data) {
     if (data['vat'] === true) {
         price = price * 1.20;
     }
+    if (data['infinity'] === null & data['suma'] === null) {
+        price = 0;
+    }
     data['fareshares_price'] = price;
 }
 
