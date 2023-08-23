@@ -138,11 +138,12 @@ async function run () {
                 suma_price = suma_details['PRICE'];
             } catch (error) {
                 if (error === 'not found') {
-                    e.suma = null;
+                    // e.suma = null;
+                    // e.suma = e.suma + ' ?';
                     suma_price = null;
                     e.suma_price = null;
                     console.log('not found in Suma:', e);
-                    html_report += `<li>item #${e.id} not found in Suma catalogue ("${e.suma_desc}")</li>`;
+                    html_report += `<li>item #${e.id} not found in Suma catalogue (${e.suma}: ${e.brand}, "${e.suma_desc}")</li>`;
                 } else {
                     console.log(error);
                 }
@@ -154,11 +155,12 @@ async function run () {
                 infinity_price = infinity_details['Case price'];
             } catch (error) {
                 if (error === 'not found') {
-                    e.infinity = null;
+                    // e.infinity = null;
+                    // e.infinity = e.infinity + ' ?';
                     infinity_price = null;
                     e.infinity_price = null;
                     console.log('not found in Infinity:', e);
-                    html_report += `<li>item #${e.id} not found in Infinity catalogue ("${e.infinity_desc}")</li>`;
+                    html_report += `<li>item #${e.id} not found in Infinity catalogue (${e.infinity}: ${e.brand}, "${e.infinity_desc}")</li>`;
                 } else {
                     console.log(error);
                 }
@@ -171,8 +173,11 @@ async function run () {
         // )
         if (suma_price === null & infinity_price === null) {
             console.log('updating', e.id)
-            html_report += `<li>item #${e.id} not found in either catalogue 
-            (Infinity: "${e.infinity_desc}", Suma: "${e.suma_desc}")</li>`;
+            html_report += `<li>item #${e.id} not found in either catalogue (
+                ${e.brand}; 
+                Infinity: ${e.infinity}, "${e.infinity_desc}", 
+                Suma: ${e.suma}, "${e.suma_desc}"
+                )</li>`;
             const update_result = await prisma.entry.update({
                 'where': {'id': e.id},
                 'data': e
