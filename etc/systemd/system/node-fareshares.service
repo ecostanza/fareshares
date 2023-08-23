@@ -1,0 +1,14 @@
+[Unit]
+Description=Fareshares Node App Service
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/projects/fareshares
+ExecStart=/srv/projects/fareshares/start.sh
+Restart=on-failure
+User=enrico
+#Environment=PORT=80
+
+[Install]
+WantedBy=multi-user.target
+
