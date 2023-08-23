@@ -87,7 +87,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 d3.select('input#infinityID').property('value', '');
                 d3.select('input#sumaID').property('value', '');
                 d3.select('input#category_autocomplete').property('value', '');
-                d3.select('select#preferred_supplier_edit').property('value', '');    
+                d3.select('select#preferred_supplier_edit').property('value', '');
+                // reset validation warnings
+                d3.select('input#infinityID').classed('is-invalid', false);
+                d3.select('input#sumaID').classed('is-invalid', false);
             });
 
             // TODO: handle the save button
@@ -159,9 +162,15 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                     console.log('post response:', response);
                     // update row
-                    tr.select('span.fareshares_price').html(
-                        `<b>${ response['fareshares_price'].toFixed(2) }</b>`
+                    // tr.select('span.fareshares_price').html(
+                    //     `<b>${ response['fareshares_price'].toFixed(2) }</b>`
+                    // );
+                    tr.select('td.fareshares_price').html(
+                        `<span class="fareshares_price">
+                        <b>${ response['fareshares_price'].toFixed(2) }</b>
+                        </span>`
                     );
+                        
                     tr.select('td.infinity').text(response['infinity']);
                     tr.select('td.suma').text(response['suma']);
                     tr.select('td.preferred_supplier').text(response['preferred_supplier']);
@@ -372,7 +381,7 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Infinity',
             interactive_header: function () {
                 let html = `
-                <select class="form-select-sm infinity-filter" aria-label="Updated on select">\n
+                <select id="infinity-filter-select" class="form-select-sm infinity-filter" aria-label="Updated on select">\n
                 `;
                 for (const option of [
                 {'value': "any", "label": "any"}, 
@@ -390,7 +399,7 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Suma',
             interactive_header: function () {
                 let html = `
-                <select class="form-select-sm suma-filter" aria-label="Updated on select">\n
+                <select id="suma-filter-select" class="form-select-sm suma-filter" aria-label="Updated on select">\n
                 `;
                 for (const option of [
                 {'value': "any", "label": "any"}, 
@@ -406,7 +415,7 @@ document.addEventListener("DOMContentLoaded", function() {
         field({
             key: 'brand',
             interactive_header: function () {
-                return '<input type="text" class="brand-filter form-control form-control-sm" aria-describedby="brand filter">';
+                return '<input id="brand-filter-input" type="text" class="brand-filter form-control form-control-sm" aria-describedby="brand filter">';
             }(),
             header: 'Brand'
         }),
@@ -420,7 +429,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             },
             interactive_header: function () {
-                return '<input type="text" class="description-filter form-control form-control-sm" aria-describedby="description filter">';
+                return '<input id="desc-filter-input" type="text" class="description-filter form-control form-control-sm" aria-describedby="description filter">';
             }(),
             header: 'Description'
         }),
@@ -523,7 +532,7 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Vat',
             interactive_header: function () {
                 let html = `
-                <select class="form-select-sm vat-filter" aria-label="Updated on select">\n
+                <select id="vat-filter-select" class="form-select-sm vat-filter" aria-label="Updated on select">\n
                 `;
                 for (const option of [
                 {'value': "any", "label": "any"}, 
@@ -549,7 +558,7 @@ document.addEventListener("DOMContentLoaded", function() {
             'header': 'Price Updated on',
             'interactive_header': function () {
                 let html = `
-                <select class="form-select-sm updated-filter" aria-label="Updated on select">\n
+                <select id="price-updated-filter-select" class="form-select-sm updated-filter" aria-label="Updated on select">\n
                 `;
                 for (const option of [
                 {'value': "null", "label": ""}, 
@@ -708,7 +717,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             return `<div>
             <input type="checkbox" class="form-check-input" id="dropdownCheck-${d.key}" ${checked}>
-            <label class="form-check-label" for="dropdownCheck-${i}">
+            <label class="form-check-label" for="dropdownCheck-${d.key}">
               ${d.header()}
             </label>
           </div>`;
