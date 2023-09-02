@@ -351,7 +351,8 @@ router.put('/entries', async function(req, res, next) {
 
   let category = null;
   try {
-    category = get_or_create_category(category_name);
+    category = await get_or_create_category(category_name);
+    console.log('category:', category);
   } catch (error) {
     console.log('category error:', error);
     return res.status(400).json({'error': error });

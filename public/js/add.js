@@ -22,7 +22,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 /*eslint no-undef: "error"*/
 /*eslint-env browser*/
 
-document.addEventListener("DOMContentLoaded", function() { 
+document.addEventListener("DOMContentLoaded", async function() { 
 
     const category_autocomplete = d3.select('input#category_autocomplete');
     const ac = new Autocomplete(category_autocomplete.node(), {
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 results_div.append('span')
                     .html(`<button type="button" id="cancelButton" class="btn btn-primary">Cancel</button>`);
                 
-                d3.select('#addButton').on('click', function () {
+                d3.select('#addButton').on('click', async function () {
                     let value = d3.select('input[name="matchingProductRadio"]:checked').node().value;
                     console.log('value:', value);
                     let add_data = {}
@@ -171,15 +171,17 @@ document.addEventListener("DOMContentLoaded", function() {
                     add_data['category_name'] = category_autocomplete.node().value;
                     add_data['user'] = 'enrico';
                     const add_url = `${rootUrl}/entries/`;
-                    d3.json(add_url, {
-                        method: 'PUT', 
-                        headers: { "Content-Type": "application/json; charset=UTF-8" },
-                        'body': JSON.stringify(add_data)
-                    }).then(function (response) {
+                    const feedback = d3.select('div#feedback');
+                    let response = null;
+                    try {
+                        response = await d3.json(add_url, {
+                            method: 'PUT', 
+                            headers: { "Content-Type": "application/json; charset=UTF-8" },
+                            'body': JSON.stringify(add_data)
+                        });
                         console.log('add response:', response);
                         // TODO: show feedback on success or failure
                         d3.select('fieldset#matchesFormFieldset').attr('disabled', true);
-                        const feedback = d3.select('div#feedback');
                         if (response.error) {
                             let msg = 'Sorry, that did not work';
                             if (response.error.includes('Unique constraint failed')) {
@@ -207,7 +209,27 @@ document.addEventListener("DOMContentLoaded", function() {
                         d3.select('#restartButton').on('click', function () {
                             window.location.reload();
                         });
-                    });            
+                    } catch (error) {
+                        console.log('error from d3.json', error);
+                        console.log('response', response);
+                        let msg = 'Sorry, that did not work';
+                        msg += '<br/>That item seems to be already in the pricelist';
+                        // if (error.includes('Unique constraint failed')) {
+                        //     msg += '<br/>That item seems to be already in the pricelist';
+                        // }
+                        feedback.html(msg);
+                        feedback.append('div')
+                            .html(`
+                            <button 
+                                type="button" 
+                                id="restartButton" 
+                                class="btn btn-primary">Try again</button>`);
+
+                        d3.select('#restartButton').on('click', function () {
+                            window.location.reload();
+                        });
+                                
+                    }
                 });
 
                 // enable add only if an option is selected
