@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                         <div>
                             <h4>${supplier} item found:</h4>
                             <div class="details">
-                                ${d['brand']}: ${d['full description']} (organic: ${d['is_organic']})
+                                ${d['brand']}: ${d['full description']} (organic: ${d['organic']})
                             </div>
                         </div>`;
                     });
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                             name="matchingProductRadio" 
                             id="flexRadio${i['code']}">
                         <label class="form-check-label" for="flexRadio${i['code']}">
-                            ${i['brand']}: ${i['full description']} (organic: ${i['is_organic']})
+                            ${i['brand']}: ${i['full description']} (organic: ${i['organic']})
                         </label>
                         `;
                         // return `${i['brand']}: ${i['full description']} (organic: ${i['is_organic']})`;

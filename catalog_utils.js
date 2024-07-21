@@ -29,7 +29,9 @@ const https = require('https'); // or 'https' for https:// URLs
 
 function download_catalogue(supplier) {
     //console.log('download_catalogue', supplier);
-    let url = 'https://www.infinityfoodswholesale.coop/download/c50f-2a5b-2174-ac03-fd54-92b7-eb55-4717/';
+    let url = 'https://www.infinityfoodswholesale.coop/download/c9d8-fd3b-16bf-c773-015c-8278-6add-33cb/';
+    // let url = 'https://www.infinityfoodswholesale.coop/download/7db7-eebd-d854-cc2c-df34-4c95-d0b3-87e5/';
+    //let url = 'https://www.infinityfoodswholesale.coop/download/c50f-2a5b-2174-ac03-fd54-92b7-eb55-4717/';
     let filename = "infinity_catalogue.csv";
     if (supplier === 'suma') {
         // URL is in environment variable because it is not public
@@ -88,47 +90,60 @@ function do_find_product (code, supplier) {
 
     const find_infinity_item = function (row, code_to_find) {
         if (row['Product code'].toLowerCase() === code_to_find) {
+            let tmp_item = {}
             // console.log("*** infinity row ***");
             // console.log(row);
             // console.log("*** end row ***");
-            found_item = row;
-            found_item['full description'] = row['product description'].toLowerCase();
-            found_item['brand'] = row['brand'].toLowerCase();
-            found_item['is_organic'] = row['organic'] === 'organic';
-            found_item['add_vat'] = row['Vat Marker'] === 'V';
+            // found_item = row;
+            // found_item = {};
+            tmp_item['full description'] = row['product description'].toLowerCase().replace("\n", "");
+            tmp_item['brand'] = row['brand'].toLowerCase();
+            tmp_item['is_organic'] = row['organic'] === 'organic';
+            tmp_item['add_vat'] = row['Vat Marker'] === 'V';
             // the infinity catalogue seems to keep changing between using
             // 'concatprodsize for export' and 'concatprodsize as text' 
             if (row.hasOwnProperty('concatprodsize for export')) {
-                found_item['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
+                tmp_item['pack size'] = row['concatprodsize for export'].toLowerCase().replace(/\s/g, '');
             } else {
-                found_item['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
+                tmp_item['pack size'] = row['concatprodsize as text'].toLowerCase().replace(/\s/g, '');
             }
-            // console.log(found_item['pack size']);
-            found_item['pack size'] = found_item['pack size'].toLowerCase().replace(/\s/g, '');
-            const matches = [...found_item['pack size'].matchAll(/(\d+)\s?x\s?([.\d]+)(\w*)/g)][0];
-            // console.log('matches:', matches);
+            // console.log(tmp_item['pack size']);
+            tmp_item['pack size'] = tmp_item['pack size'].toLowerCase().replace(/\s/g, '');
+            const matches = [...tmp_item['pack size'].matchAll(/(\d+)\s?x\s?([.\d]+)(\w*)/g)][0];
             if (matches) {
-                found_item['units case'] = parseInt(matches[1], 10);
-                found_item['pack size'] = parseInt(matches[2], 10);
-                found_item['unit'] = matches[3];
+                tmp_item['units case'] = parseInt(matches[1], 10);
+                tmp_item['pack size'] = parseFloat(matches[2], 10);
+                tmp_item['unit'] = matches[3];
             } else {
-                // console.log(found_item['pack size']);
                 try {
-                    const alt_matches = [...found_item['pack size'].matchAll(/([.\d]+)\s?(\w*)/g)][0];
-                    found_item['units case'] = 1;
-                    found_item['pack size'] = parseInt(alt_matches[1], 10);
-                    found_item['unit'] = alt_matches[2];
+                    const alt_matches = [...tmp_item['pack size'].matchAll(/([.\d]+)\s?(\w*)/g)][0];
+                    tmp_item['units case'] = 1;
+                    // tmp_item['pack size'] = parseInt(alt_matches[1], 10);
+                    tmp_item['pack size'] = parseFloat(alt_matches[1], 10);
+                    tmp_item['unit'] = alt_matches[2];
                 } catch (error) {
-                    found_item['units case'] = 1;
-                    found_item['pack size'] = 1;
-                    found_item['unit'] = '';
+                    tmp_item['units case'] = 1;
+                    tmp_item['pack size'] = 1;
+                    tmp_item['unit'] = '';
                 }
             }
-            // console.log(found_item['pack size']);
+            // console.log(
+            //     'full description', tmp_item['full description'],
+            //     'pack size', tmp_item['pack size'], 
+            //     "units case", tmp_item['units case'],
+            //     'unit', tmp_item['unit']
+            //     );
+            // console.log(tmp_item['pack size']);
 
-            // found_item['units case'] = parseInt(found_item['units case'], 10);
-            // found_item['pk size'] = parseInt(found_item['pk size'], 10);
-            found_item['Case price'] = parseFloat(found_item['Case price'], 10);
+            // tmp_item['units case'] = parseInt(tmp_item['units case'], 10);
+            // tmp_item['pk size'] = parseInt(tmp_item['pk size'], 10);
+            tmp_item['Case price'] = parseFloat(row['Case price'], 10);
+            // found_item['infinity_price'] = parseFloat(found_item['Case price'], 10);
+            found_item = {};
+            for (const key in infinity_lut) {
+                found_item[key] = tmp_item[infinity_lut[key]];
+            }
+            found_item['full description'] = found_item['infinity_desc'];
         }
     };
     
@@ -137,33 +152,43 @@ function do_find_product (code, supplier) {
             // console.log("*** suma row ***");
             // console.log(row);
             // console.log("*** end row ***");
-            found_item = row;
-            found_item['full description'] = row['PLDESC'].toLowerCase() + ' ' + row['PLTEXT'].toLowerCase();
-            found_item['is_organic'] = row['O'] === 'O';
-            found_item['add_vat'] = row[' VAT'] === '1';
-            found_item['brand'] = row['BRAND'].toLowerCase();
-            found_item['pack size'] = row['SIZE'].toLowerCase().replace(/\s/g, '');
-            const matches = [...found_item['pack size'].matchAll(/(\d+)\s?x\s?([.\d]+)(\w*)/g)][0];
+            // found_item = row;
+            let tmp_item = {};
+            tmp_item['full description'] = row['PLDESC'].toLowerCase() + ' ' + row['PLTEXT'].toLowerCase();
+            tmp_item['is_organic'] = row['O'] === 'O';
+            tmp_item['add_vat'] = row[' VAT'] === '1';
+            tmp_item['brand'] = row['BRAND'].toLowerCase();
+            tmp_item['pack size'] = row['SIZE'].toLowerCase().replace(/\s/g, '');
+            const matches = [...tmp_item['pack size'].matchAll(/(\d+)\s?x\s?([.\d]+)(\w*)/g)][0];
             // console.log('matches:', matches);
             if (matches) {
-                found_item['units case'] = parseInt(matches[1], 10);
-                found_item['pk size'] = parseInt(matches[2], 10);
-                found_item['unit'] = matches[3];
+                tmp_item['units case'] = parseInt(matches[1], 10);
+                tmp_item['pk size'] = parseFloat(matches[2], 10);
+                tmp_item['unit'] = matches[3];
             } else {
-                // console.log(found_item['pack size']);
+                // console.log(tmp_item['pack size']);
                 try {
-                    const alt_matches = [...found_item['pack size'].matchAll(/([.\d]+)\s?(\w*)/g)][0];
-                    found_item['units case'] = 1;
-                    found_item['pk size'] = parseInt(alt_matches[1], 10);
-                    found_item['unit'] = alt_matches[2];
+                    const alt_matches = [...tmp_item['pack size'].matchAll(/([.\d]+)\s?(\w*)/g)][0];
+                    tmp_item['units case'] = 1;
+                    tmp_item['pk size'] = parseFloat(alt_matches[1], 10);
+                    tmp_item['unit'] = alt_matches[2];
                 } catch (error) {
-                    found_item['units case'] = 1;
-                    found_item['pk size'] = 1;
-                    found_item['unit'] = '';
+                    tmp_item['units case'] = 1;
+                    tmp_item['pk size'] = 1;
+                    tmp_item['unit'] = '';
                 }
             }
-            found_item['PRICE'] = parseFloat(found_item['PRICE'], 10);
-            // console.log('found_item:', found_item);
+            tmp_item['PRICE'] = parseFloat(row['PRICE'], 10);
+            // tmp_item['suma_price'] = parseFloat(tmp_item['PRICE'], 10);
+            // console.log('tmp_item:', tmp_item);
+            
+            found_item = {};
+            for (const key in suma_lut) {
+                found_item[key] = tmp_item[suma_lut[key]];
+            }
+            if (found_item['full description'] === undefined) {
+                found_item['full description'] = found_item['suma_desc'];
+            }
         }
     };
     
@@ -248,8 +273,10 @@ const do_get_product_data = async function (product_code, supplier, data) {
         data[supplier] = product_code;
         try {
           const product_details = await find_product(product_code, supplier);
+          console.log('product_details:', product_details)
           Object.keys(lut).forEach(function (key) {
-              data[key] = product_details[lut[key]];
+            //   data[key] = product_details[lut[key]];
+            data[key] = product_details[key];
           });
         } catch (error) {
           console.log(`find_product (${supplier}) error:`, error);
@@ -304,13 +331,13 @@ function do_find_matches (product_details, supplier) {
             // console.log(`row['is_organic']: ${row['is_organic']}`);
             // console.log(`infinity_item['is_organic']: ${infinity_item['is_organic']}\n`);
 
-            row['full description'].includes('organic')
+            row['full description'].includes('organic');
 
-            if (infinity_item['is_organic'] === row['is_organic']) {
+            if (infinity_item['organic'] === row['is_organic']) {
                 current['organic_match'] = true;
             }
             const suma_desc = row['full description'];
-            const inf_desc = infinity_item['product description'].toLowerCase();
+            const inf_desc = infinity_item['infinity_desc'].toLowerCase().replace("\n", "");
             const distance = levenshtein(suma_desc, inf_desc) / Math.max(suma_desc.length, inf_desc.length);
             current['distance'] = distance;
             current['item'] = row;
@@ -321,12 +348,12 @@ function do_find_matches (product_details, supplier) {
     };
     
     const find_infinity_matches = function (row, suma_item) {
-        if (row['brand'].toLowerCase() === suma_item['BRAND'].toLowerCase()) {
+        if (row['brand'].toLowerCase() === suma_item['brand'].toLowerCase()) {
             let current = {
                 'size_match': false,
                 'organic_match': false
             };
-            row['full description'] = row['product description'].toLowerCase();
+            row['full description'] = row['product description'].toLowerCase().replace("\n", "");
             // console.log();
             
             // the infinity catalogue seems to keep changing between using
@@ -346,12 +373,12 @@ function do_find_matches (product_details, supplier) {
             row['code'] = row['Product code'];
             // console.log(`row['is_organic']: ${row['is_organic']}`);
             // console.log(`suma_item['is_organic']: ${suma_item['is_organic']}\n`);
-            if (row['is_organic'] === suma_item['is_organic']) {
+            if (row['is_organic'] === suma_item['organic']) {
                 current['organic_match'] = true;
             }
 
-            const suma_desc = suma_item['full description'];
-            const inff_desc = row['product description'].toLowerCase();
+            const suma_desc = suma_item['suma_desc'];
+            const inff_desc = row['product description'].toLowerCase().replace("\n", "");
             const distance = levenshtein(suma_desc, inff_desc) / Math.max(suma_desc.length, inff_desc.length);
             current['distance'] = distance;
             current['item'] = row;

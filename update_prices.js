@@ -129,13 +129,14 @@ async function run () {
     let update_counter = 0;
     for (const e of entries) {
         // console.log();
+        counter = counter + 1;
         process.stdout.write(`processing ${e['id']} (${(100*counter/entries.length).toFixed(0)}%)\r`);
         let suma_price = null;
         let infinity_price = null;
         if (e.suma) {
             try {
                 const suma_details = await catalog_utils.find_product(e.suma, 'suma');    
-                suma_price = suma_details['PRICE'];
+                suma_price = suma_details['suma_price'];
             } catch (error) {
                 if (error === 'not found') {
                     // e.suma = null;
@@ -152,7 +153,7 @@ async function run () {
         if (e.infinity) {
             try {
                 const infinity_details = await catalog_utils.find_product(e.infinity, 'infinity');    
-                infinity_price = infinity_details['Case price'];
+                infinity_price = infinity_details['infinity_price'];
             } catch (error) {
                 if (error === 'not found') {
                     // e.infinity = null;
@@ -182,7 +183,7 @@ async function run () {
                 'where': {'id': e.id},
                 'data': e
             });
-            counter = counter + 1;
+            // counter = counter + 1;
             update_counter = update_counter + 1;
             
             continue;
@@ -201,7 +202,7 @@ async function run () {
                 'where': {'id': e.id},
                 'data': e
             });
-            counter = counter + 1;
+            // counter = counter + 1;
             // console.log('update_result:', update_result);
             let desc = e.suma_desc;
             if (e.infinity) {
@@ -213,7 +214,7 @@ async function run () {
             
             update_counter = update_counter + 1;
         }
-        counter = counter + 1;
+        // counter = counter + 1;
     }
     html_report += '</ul>';
     html_report += `Updated ${update_counter} items out of ${entries.length}.`;
