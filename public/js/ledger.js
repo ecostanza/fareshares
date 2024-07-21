@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     function create_event () {
         const new_transaction_data = collect_form_data();
-        const url = `${rootUrl}//transactions/`;
+        const url = `${rootUrl}/transactions/`;
         let method = 'PUT';
         d3.json(url, {
             method: 'PUT', 
