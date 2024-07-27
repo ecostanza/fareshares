@@ -32,14 +32,14 @@ const rootUrl = url_utils.root_url;
 router.use(function (req, res, next) {
   res.locals['user'] = {'username': req.user.username, 'is_admin': req.user.is_admin};
   const menu_items = [
-    {admin_only: false, url: '/ledger', label: 'Ledger'},
+    {admin_only: false, url: '/finances_log', label: 'Finances Log'},
     {admin_only: false, url: '/pricelist', label: 'Printable Pricelist'},
     // 
     {admin_only: true, url: '/manage_pricelist', label: 'Manage Pricelist'},
     {admin_only: true, url: '/add', label: 'Add Entry'},
     {admin_only: true, url: '/batch_add', label: 'Batch Add Entries'},
-    {admin_only: true, url: '/categories', label: 'Manage Categories'},
-    {admin_only: true, url: '/users', label: 'Manage Users'},
+    //{admin_only: true, url: '/categories', label: 'Manage Categories'},
+    //{admin_only: true, url: '/users', label: 'Manage Users'},
   ];
   res.locals['menu_items'] = menu_items;
   
@@ -83,7 +83,7 @@ async function render_pricelist(interactive, req, res, next) {
 }
 
 router.get('/', function(req, res, next) {
-  res.redirect(`${rootUrl}/ledger`);
+  res.redirect(`${rootUrl}/finances_log`);
 });
 
 // TODO: change to /printable_pricelist ?
@@ -140,10 +140,10 @@ router.get('/add/', async function(req, res, next) {
   });
 });
 
-router.get('/ledger/', async function(req, res, next) {
-  res.render('ledger.html', { 
-    'title': 'Ledger',
-    'nav_url': '/ledger',
+router.get('/finances_log/', async function(req, res, next) {
+  res.render('finances_log.html', { 
+    'title': 'finances_log',
+    'nav_url': '/finances_log',
     'username': req.user.username,
     'categories': []
   });
@@ -372,6 +372,7 @@ router.put('/entries', async function(req, res, next) {
     // check codes
     await catalog_utils.get_product_data(infinity_code, 'infinity', data);
     await catalog_utils.get_product_data(suma_code, 'suma', data);
+    console.log('data from get_product_data', data);
   } catch (error) {
     return res.status(400).json({'error': error});
   }
