@@ -149,6 +149,12 @@ router.get('/finances_log/', async function(req, res, next) {
   });
 });
 
+router.get('/ledger/', async function(req, res, next) {
+  // return router.get('/finances_log/', req, res, next);
+  res.set('location', `https://d-touch.org/fs/finances_log/`);
+  res.status(301).send();
+});
+
 router.get('/users/', async function(req, res, next) {
   const users = await prisma.user.findMany({});
   res.locals['users'] = users;
