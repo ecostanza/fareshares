@@ -29,7 +29,11 @@ const https = require('https'); // or 'https' for https:// URLs
 
 function download_catalogue(supplier) {
     //console.log('download_catalogue', supplier);
-    let url = 'https://www.infinityfoodswholesale.coop/download/c9d8-fd3b-16bf-c773-015c-8278-6add-33cb/';
+    // let url = 'https://www.infinityfoodswholesale.coop/download/9a96-da20-e998-ab68-3083-b0be-ffc0-cf7a/';
+    // let url = 'https://www.infinityfoodswholesale.coop/download/c475-91fb-3ff9-adcc-4ea3-559e-91c6-ec00/';
+    let url = 'https://www.infinityfoodswholesale.coop/download/e962-2e4a-f06c-1f8c-4ed7-1009-f516-595b/';
+    // let url = 'https://www.infinityfoodswholesale.coop/price-lists/ms-excel-csv';
+    // let url = 'https://www.infinityfoodswholesale.coop/download/c9d8-fd3b-16bf-c773-015c-8278-6add-33cb/';
     // let url = 'https://www.infinityfoodswholesale.coop/download/7db7-eebd-d854-cc2c-df34-4c95-d0b3-87e5/';
     //let url = 'https://www.infinityfoodswholesale.coop/download/c50f-2a5b-2174-ac03-fd54-92b7-eb55-4717/';
     let filename = "infinity_catalogue.csv";
@@ -43,11 +47,38 @@ function download_catalogue(supplier) {
     return new Promise( function (resolve, reject) {
         const request = https.get(url, function(response) {
             response.pipe(file);
-            
+
+            if (response.statusCode !== 200) {
+                // create new error object and pass it to reject
+                let error = new Error(`catalogue error from: ${supplier}`);
+                error.code = response
+                reject(error);
+                return;
+            }
+
             // after download completed close filestream
             file.on("finish", () => {
                 file.close();
                 // console.log("Download Completed");
+                // if the supplier is suma, remove all double quotes from the file
+                if (supplier === 'suma') {
+                    fs.readFile(filename, 'utf8', function (err, data) {
+                        if (err) {
+                            console.log('readFile error:', err);
+                            reject(err);
+                            return;
+                        }
+                        const result = data.replace(/"/g, '');
+                        fs.writeFile(filename, result, 'utf8', function (err) {
+                            if (err) {
+                                console.log('writeFile error:', err);
+                                reject(err);
+                                return;
+                            }
+                            resolve();
+                        });
+                    });
+                }
                 resolve();
             });
             file.on('error', function (error) {
@@ -232,7 +263,7 @@ async function find_product (code, supplier) {
         }
         return await do_find_product(code, supplier);
     } catch (error) {
-        console.log('find_product, error:', JSON.stringify(error));
+        console.log('find_product, error:', error);
         // throw new Error(error);
         throw error;
     }
