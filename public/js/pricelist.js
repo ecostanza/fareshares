@@ -26,12 +26,23 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 document.addEventListener("DOMContentLoaded", function() { 
     console.log('loaded');
 
+    // get the last part of the ULR to save the settings specific to it
+    const page = window.location.pathname.split("/").slice(-1)[0];
+    console.log('page', page);
+
     let _settings = {};
-    const settings_str = window.localStorage.getItem('settings');
+    const settings_str = window.localStorage.getItem(`settings_${page}`);
     if (settings_str !== null) {
         _settings = JSON.parse(settings_str);
     }
-    console.log('_settings', _settings);
+    // console.log('_settings', _settings);
+
+    let _order_data = {};
+    const order_data_str = window.localStorage.getItem(`order_data`);
+    if (order_data_str !== null) {
+        _order_data = JSON.parse(order_data_str);
+    }
+
     let _all_entries = [];
 
     function setup_interactive_elements () {
@@ -64,6 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
         //     .attr('type', 'button')
         //     .text('Del.');
 
+        // TODO: this needs fixing so that it is attached only to the edit button
         d3.selectAll('tr.entry')
           .selectAll('button')
           .on('click', function (event) {
@@ -219,6 +231,114 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 });
         });
+
+        function handle_basket_event (event, delta) {
+            // TODO: implement basket event handling
+            const that = event.currentTarget;
+            const tr = d3.select(that.parentNode.parentNode.parentNode.parentNode);
+            let item_data_string = tr.attr('data-entry');
+            let item_data = JSON.parse(item_data_string);
+            console.log('add to order', item_data);
+
+            let item_order_id = `${item_data['id']}_${item_data['supplier']}`;
+            
+            let order_number_span = tr.select('span.order-number');
+            let order_number = parseInt(order_number_span.text(), 10);
+            order_number = order_number + delta;
+            order_number_span.text(order_number);
+
+            if (order_number !== 0) {
+
+                item_data['order_number'] = order_number;
+
+                // _order_data.push({ item_id, order_number });
+                _order_data[item_order_id] = item_data;
+            } else {
+                delete _order_data[item_order_id];
+            }
+            // TODO: save order data to local storage
+            window.localStorage.setItem(`order_data`, JSON.stringify(_order_data));
+        }
+
+        d3.selectAll('button.add-button').on('click', function (event) {
+            handle_basket_event(event, 1);
+        });
+
+        d3.selectAll('button.subtract-button').on('click', function (event) {
+            handle_basket_event(event, -1);
+        });
+
+        d3.select('button#basketButton').on('click', function (event) {
+            const modal = new bootstrap.Modal(
+                document.getElementById('basketModal'), {backdrop: 'static'});
+            modal.show();
+
+            // clear existing text
+            d3.select('pre#infinityBasket').text('');
+            d3.select('pre#sumaBasket').text('');
+            
+            // iterate over _order_data and populate the modal
+            for (const item of Object.values(_order_data)) {
+                console.log('item', item);
+                const entry = `${item['code']}, ${item['order_number']}`;
+                console.log('entry', entry);
+                const selector = `pre#${item['supplier']}Basket`;
+                console.log('selector', selector);
+                const destination = d3.select(selector);
+                const existing_text = destination.text();
+                console.log('existing_text', existing_text);
+                destination.text(existing_text + entry + '\n');
+            }
+
+            function copy_to_clipboard (event, supplier) {
+                const selector = `pre#${supplier}Basket`;
+                const clipboard_text = d3.select(selector).text();
+                navigator.clipboard.writeText(clipboard_text).then(function() {
+                        console.log(`${supplier} IDs copied to clipboard`);
+                        // show a temporary message that disappears after 2 seconds
+                        const message = d3.select(`div#${supplier}BasketMessage`);
+                        message.text('Copied to clipboard!');
+                        setTimeout(function() {
+                            message.text('');
+                        }, 2000);
+                    }, function(err) {
+                        console.error('Could not copy text: ', err);
+                    });
+                
+            }
+
+            d3.select('button#infinityBasketButton').on('click', function (event) {
+                copy_to_clipboard(event, 'infinity');
+            });
+            d3.select('button#sumaBasketButton').on('click', function (event) {
+                copy_to_clipboard(event, 'suma');
+            });
+
+            function clear_basket (event, supplier) {
+                // iterate over _order_data and remove items for the specified supplier
+                for (const item_id of Object.keys(_order_data)) {
+                    if (_order_data[item_id]['supplier'] === supplier) {
+                        delete _order_data[item_id];
+                    }
+                }
+                // save _order_data to local storage
+                window.localStorage.setItem(`order_data`, JSON.stringify(_order_data));
+            }
+            
+            d3.select('button#emptyInfinityBasketButton').on('click', function (event) {
+                clear_basket(event, 'infinity');
+                render(_all_entries);
+                update_order_amounts();
+            });
+            
+            d3.select('button#emptySumaBasketButton').on('click', function (event) {
+                clear_basket(event, 'suma');
+                render(_all_entries);
+                update_order_amounts();
+            });
+            
+        });
+        
     }
 
     function setup_filters () {
@@ -420,20 +540,6 @@ document.addEventListener("DOMContentLoaded", function() {
             header: 'Brand'
         }),
         field({
-            key: 'desc',
-            value: function (e) {
-                if (e.infinity_desc) {
-                    return e['infinity_desc'];
-                } else {
-                    return e['suma_desc'];
-                }
-            },
-            interactive_header: function () {
-                return '<input id="desc-filter-input" type="text" class="description-filter form-control form-control-sm" aria-describedby="description filter">';
-            }(),
-            header: 'Description'
-        }),
-        field({
             key: 'organic',
             header: 'Organic'
         }),
@@ -450,7 +556,23 @@ document.addEventListener("DOMContentLoaded", function() {
         }),
         field({
             key: 'infinity_price',
-            header: 'Infinity Price'
+            header: 'Infinity Price',
+            // value: function (e) {
+            //     if (e['infinity_price']) {
+            //         if (e['suma_price']) {
+            //             const delta = e['suma_price'] - e['infinity_price'];
+            //             if (delta > e['infinity_price'] * 0.05) {
+            //                 return e['infinity_price'].toFixed(2);
+            //             } else {
+            //                 return `<span style="color: gray">${e['infinity_price'].toFixed(2)}</span>`;
+            //             }
+            //         } else {
+            //             return e['infinity_price'].toFixed(2);
+            //         }
+            //     } else {
+            //         return '';
+            //     }
+            // }
         }),
         //
         field({
@@ -471,7 +593,23 @@ document.addEventListener("DOMContentLoaded", function() {
         //
         field({
             key: 'suma_price',
-            header: 'Suma Price'
+            header: 'Suma Price',
+            // value: function (e) {
+            //     if (e['suma_price']) {
+            //         if (e['infinity_price']) {
+            //             const delta = e['infinity_price'] - e['suma_price'];
+            //             if (delta > e['suma_price'] * 0.05) {
+            //                 return e['suma_price'].toFixed(2);
+            //             } else {
+            //                 return `<span style="color: gray">${e['suma_price'].toFixed(2)}</span>`;
+            //             }
+            //         } else {
+            //             return e['suma_price'].toFixed(2);
+            //         }
+            //     } else {
+            //         return '';
+            //     }
+            // }
         }),
         //
         field({
@@ -636,6 +774,95 @@ document.addEventListener("DOMContentLoaded", function() {
         }));
     }
 
+    const item_size = function (e) {
+        if (e.n_items > 1) {
+            return `${e.n_items} x ${e.item_size}${e.item_unit}`;
+        } else {
+            return `${e.item_size}${e.item_unit}`;
+        }
+    };
+
+    if (ordering === true) {
+        // prepend order column
+        _all_fields = [
+
+            field({
+                key: 'order',
+                header: 'Order',
+                value: function (e) {
+                    let html = '';
+                    html += '<div class="btn-group">'
+                    html += '<span class="btn-group-prepend">'
+                    html += '<button class="btn btn-secondary btn-sm subtract-button" type="button">';
+                    html += '-';
+                    html += '</button>';
+                    html += '</span>';
+                    html += '&nbsp;';
+                    html += '<span class="btn-sm order-number">0</span>';
+                    // html += '<input type="number" class="form-control order-number" value="0">';
+                    html += '&nbsp;';
+                    html += '<span class="btn-group-append">'
+                    html += '<button class="btn btn-secondary btn-sm add-button" type="button">';
+                    html += '+';
+                    html += '</button>';
+                    html += '</span>';
+                    html += '</div>';
+                    return html;
+                }
+            }),
+            field({
+                key: 'supplier',
+                header: 'Supplier'
+            }),
+            field({
+                key: 'desc',
+                value: function (e) {
+                    if (e.infinity_desc) {
+                        return `${e['infinity_desc']} - ${item_size(e)}`;
+                    } else {
+                        return `${e['suma_desc']} - ${item_size(e)}`;
+                    }
+                },
+                interactive_header: function () {
+                    return '<input id="desc-filter-input" type="text" class="description-filter form-control form-control-sm" aria-describedby="description filter">';
+                }(),
+                header: 'Description'
+            }),
+            field({
+                key: 'size',
+                value: function (e) {
+                    if (e.n_items > 1) {
+                        return `${e.n_items} x ${e.item_size}${e.item_unit}`;
+                    } else {
+                        return `${e.item_size}${e.item_unit}`;
+                    }
+                },
+                header: 'Pack Size'
+            }),
+            field({
+                key: 'supplier_unit_price',
+                value: function (e) {
+                    if (e['supplier'] === 'infinity') {
+                        let divider = e['item_size'];
+                        if (e.n_items > 1) {
+                            divider = e['n_items'];
+                        }
+                        return (e['infinity_price']/divider).toFixed(2);
+                    } else if (e['supplier'] === 'suma') {
+                        let divider = e['item_size'];
+                        if (e.n_items > 1) {
+                            divider = e['n_items'];
+                        }
+                        return (e['suma_price']/divider).toFixed(2);
+                    } else {
+                        return '';
+                    }
+                },
+                header: 'Supplier Unit Price'
+            })
+        ];
+    }
+
     d3.select('button#settingsButton').on('click', function () {
         const modal = new bootstrap.Modal(
             document.getElementById('settingsModal'), {backdrop: 'static'});
@@ -669,7 +896,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     return result;
                 }();
             console.log('_settings', _settings);
-            window.localStorage.setItem('settings', JSON.stringify(_settings))
+            window.localStorage.setItem(`settings_${page}`, JSON.stringify(_settings))
 
             modal.hide();
         });
@@ -776,7 +1003,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 .data(g)
                 .enter()
                 .append('tr')
-                .attr('class', 'entry')
+                .attr('class', function (d) {
+                    let class_text = 'entry';
+                    if (d['alternative_supplier'] !== undefined && d['alternative_supplier'] === false) {
+                        class_text += ' spaced';
+                    }
+                    if (d['supplier'] !== undefined) {
+                        class_text += ` ${d['supplier']}`
+                        class_text += ` ${d['supplier']}_${d['id']}`;
+                    }
+                    return class_text;
+                })
                 .attr('data-dbid', function (d) { return d.id; })
                 .attr('data-entry', function (d) { return JSON.stringify(d); })
                 .html(function (d) {
@@ -790,7 +1027,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
         });
 
-        if (interactive === true) {
+        if (interactive === true || ordering === true) {
             setup_interactive_elements();
         }
 
@@ -814,6 +1051,20 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    function update_order_amounts () {
+        console.log('_order_data', _order_data);
+        console.log('_order_data.values()', Object.values(_order_data));
+        // iterate over _order_data and update the order numbers in the table
+        for (const item of Object.values(_order_data)) {
+            console.log('item', item);
+            const item_order_id = `${item['supplier']}_${item['id']}`;
+            const order_number = item['order_number'];
+            console.log('item_order_id', item_order_id, 'order_number', order_number);
+            const tr = d3.select(`tr.${item_order_id}`);
+            tr.select('span.order-number').text(order_number);
+        }
+    }
+
     async function load_data () {
         const url = `${rootUrl}/entries`;
         console.log('load_data');
@@ -829,8 +1080,90 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 return e;
             });
+            console.log('_all_entries', _all_entries);
+            let get_infinity_details = function (e) {
+                let item = {};
+                item['supplier'] = 'infinity';
+                item['infinity_price'] = e['infinity_price'];
+                item['item_size'] = e['item_size'];
+                item['item_unit'] = e['item_unit'];
+                item['n_items'] = e['n_items'];
+                item['code'] = e['infinity'];
+                item['infinity_desc'] = e['brand'] + ' ' + e['infinity_desc'];
+                // get all other fields from e
+                // item = {...e, ...item};
+                item['category'] = e['category'];
+                item['id'] = e['id'];
+
+                item['alternative_supplier'] = false;
+
+                return item;
+            };
+            let get_suma_details = function (e) {
+                let item = {};
+                item['supplier'] = 'suma';
+                item['suma_price'] = e['suma_price'];
+                item['code'] = e['suma'];
+                item['item_size'] = e['item_size'];
+                item['item_unit'] = e['item_unit'];
+                item['n_items'] = e['n_items'];
+                item['infinity_desc'] = e['brand'] + ' ' + e['suma_desc'];            
+                // item = {...e, ...item};
+                item['category'] = e['category'];
+                item['id'] = e['id'];
+
+                item['alternative_supplier'] = false;
+
+                return item;
+            };
+            if (ordering === true) {
+                // split entries with both infinity and suma into two entries, one for each supplier
+                // but only if the price difference is significant (e.g. > 5%)
+                let split_entries = _all_entries.map(function (e) {
+                    let result = [];
+                    if (e['suma'] && e['infinity']) {
+                        const min_price = Math.min(
+                            e['infinity_price'], e['suma_price']);
+                        const delta = Math.abs(
+                            e['infinity_price'] - e['suma_price']);
+                        if (delta > min_price * 0.05) {
+                            // keep only the cheaper option
+                            if (e['infinity_price'] < e['suma_price']) {
+                                // keep infinity
+                                result.push(get_infinity_details(e));
+                            } else {
+                                // keep suma
+                                result.push(get_suma_details(e));
+                            }
+                        } else {
+                            // keep both options
+                            let infinity_tmp = get_infinity_details(e);
+                            infinity_tmp['alternative_supplier'] = true;
+                            result.push(infinity_tmp);
+                            let suma_tmp = get_suma_details(e);
+                            // use the infinity description to emphasize they are
+                            // the same product
+                            suma_tmp['infinity_desc'] = e['brand'] + ' ' + e['infinity_desc'];
+                            result.push(suma_tmp);
+                        }
+                    } else {
+                        if (e['infinity']) {
+                            result.push(get_infinity_details(e));
+                        } else if (e['suma']) {
+                            result.push(get_suma_details(e));
+                        }
+                    }
+                    return result;
+                });
+                // flatten the list of lists
+                _split_entries = [].concat.apply([], split_entries);
+                console.log('_split_entries', _split_entries);
+                _all_entries = _split_entries;
+            }
             render_header();
             render(_all_entries);
+            // update the order amounts
+            update_order_amounts();
         } catch (error) {
             console.log('error', error);
         }

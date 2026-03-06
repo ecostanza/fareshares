@@ -69,7 +69,7 @@ router.use(function (req, res, next) {
 });
 
 
-async function render_pricelist(interactive, req, res, next) {
+async function render_pricelist(interactive, ordering, req, res, next) {
   let nav_url = `${rootUrl}/manage_pricelist`;
   if (interactive === false) {
     nav_url = `${rootUrl}/`;
@@ -77,6 +77,7 @@ async function render_pricelist(interactive, req, res, next) {
   res.render('pricelist.html', { 
     'title': 'Pricelist',
     'interactive': interactive,
+    'ordering': ordering,
     'username': req.user.username,
     'nav_url': nav_url
   });
@@ -88,11 +89,15 @@ router.get('/', function(req, res, next) {
 
 // TODO: change to /printable_pricelist ?
 router.get('/pricelist', function(req, res, next) {
-  return render_pricelist(false, req, res, next);
+  return render_pricelist(false, false, req, res, next);
 });
 
 router.get('/manage_pricelist', function(req, res, next) {
-  return render_pricelist(true, req, res, next);
+  return render_pricelist(true, false, req, res, next);
+});
+
+router.get('/order_pricelist', function(req, res, next) {
+  return render_pricelist(false, true, req, res, next);
 });
 
 router.get('/pricelist_csv', async function (req, res, next) {

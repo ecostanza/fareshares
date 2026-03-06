@@ -59,3 +59,21 @@ div.main-loading div {
   top: 10%;
   left: 40%;
 }
+
+tr.spaced {
+  border-bottom: 1em solid white;
+  margin-bottom: 1em;
+}
+
+tr.suma {
+  /* border-left: 3px solid teal; */
+  /* background-color: lightcyan; */
+  background-color: #f7eac1;
+}
+
+tr.infinity {
+  /* border-left: 3px solid coral; */
+  /* background-color: lightcoral; */
+  background-color: #aabcb0;
+
+}

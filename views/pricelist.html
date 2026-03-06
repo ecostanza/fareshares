@@ -37,6 +37,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
       </svg>
     </button>
 
+    {% if ordering %}
+    <button id="basketButton" class="float btn btn-outline-secondary btn-sm" type="button">
+      Ordering Basket
+    </button>
+    {% endif %}
+
     <!-- Settings Modal -->
     <div class="modal fade" 
          id="settingsModal" 
@@ -140,6 +146,47 @@ this program. If not, see <http://www.gnu.org/licenses/>.
       </div>
     </div>
 
+    <!-- Basket Modal -->
+    <div class="modal fade" 
+         id="basketModal" 
+         tabindex="-1" 
+         data-bs-target="#staticBackdrop"
+         aria-labelledby="basketModalLabel" 
+         aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="basketModalLabel">Baskets</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              
+              <p>Click the buttons below to copy the corresponding basket to clipboard. You can then paste it in your order form on Infinity or Suma.</p>
+              
+              <div class="row">
+                <div class="col">
+                  <h5>Infinity Basket</h5>
+                  <div id="infinityBasketMessage" ></div>
+                  <pre id="infinityBasket" class="bg-light p-2"></pre>
+                </div>
+                <div class="col">
+                  <h5>Suma Basket</h5>
+                  <div id="sumaBasketMessage" ></div>
+                  <pre id="sumaBasket" class="bg-light p-2"></pre>
+                </div>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="emptyInfinityBasketButton" class="btn btn-warning" data-bs-dismiss="modal">Empty Infinity Basket</button>
+            <button type="button" id="emptySumaBasketButton" class="btn btn-warning" data-bs-dismiss="modal">Empty Suma Basket</button>
+            <button type="button" id="cancelBasketButton" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" id="infinityBasketButton" class="btn btn-primary">Copy Infinity to Clipboard</button>
+            <button type="button" id="sumaBasketButton" class="btn btn-primary">Copy Suma to Clipboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
 
       <table class="table">
       <thead>
@@ -156,6 +203,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     <script type="text/javascript" src="{{rootUrl}}/static/js/pricelist.js"></script>
     <script type="text/javascript">
     const interactive = {{ interactive }};
+    const ordering = {{ ordering }};
     </script>
 
 {% endblock %}
