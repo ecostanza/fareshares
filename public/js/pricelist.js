@@ -276,6 +276,9 @@ document.addEventListener("DOMContentLoaded", function() {
             // clear existing text
             d3.select('pre#infinityBasket').text('');
             d3.select('pre#sumaBasket').text('');
+
+            let infinity_value = 0;
+            let suma_value = 0;
             
             // iterate over _order_data and populate the modal
             for (const item of Object.values(_order_data)) {
@@ -288,7 +291,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 const existing_text = destination.text();
                 console.log('existing_text', existing_text);
                 destination.text(existing_text + entry + '\n');
+
+                if (item['supplier'] === 'infinity') {
+                    infinity_value += item['infinity_price'] * item['order_number'];
+                } else if (item['supplier'] === 'suma') {
+                    suma_value += item['suma_price'] * item['order_number'];
+                }
             }
+
+            d3.select('span#infinityTotal').text(infinity_value.toFixed(2));
+            d3.select('span#sumaTotal').text(suma_value.toFixed(2));
 
             function copy_to_clipboard (event, supplier) {
                 const selector = `pre#${supplier}Basket`;
@@ -491,6 +503,25 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     };
 
+    const description_field = field({
+        key: 'desc',
+        value: function (e) {
+            let result = e['suma_desc'];
+            if (e.infinity_desc) {
+                result = e['infinity_desc'];
+            } 
+            if (ordering === true) {
+                result = `${result} - ${item_size(e)}`;
+            }
+            return result;
+        },
+        interactive_header: function () {
+            return '<input id="desc-filter-input" type="text" class="description-filter form-control form-control-sm" aria-describedby="description filter">';
+        }(),
+        header: 'Description'
+    });
+
+
     let _all_fields = [
         // field({
         //     key: function (e) {return e['category']['name'];},
@@ -539,6 +570,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }(),
             header: 'Brand'
         }),
+        description_field,
         field({
             key: 'organic',
             header: 'Organic'
@@ -810,24 +842,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     return html;
                 }
             }),
-            field({
-                key: 'supplier',
-                header: 'Supplier'
-            }),
-            field({
-                key: 'desc',
-                value: function (e) {
-                    if (e.infinity_desc) {
-                        return `${e['infinity_desc']} - ${item_size(e)}`;
-                    } else {
-                        return `${e['suma_desc']} - ${item_size(e)}`;
-                    }
-                },
-                interactive_header: function () {
-                    return '<input id="desc-filter-input" type="text" class="description-filter form-control form-control-sm" aria-describedby="description filter">';
-                }(),
-                header: 'Description'
-            }),
+            // field({
+            //     key: 'supplier',
+            //     header: 'Supplier'
+            // }),
+            description_field,
             field({
                 key: 'size',
                 value: function (e) {
