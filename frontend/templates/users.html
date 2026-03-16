@@ -1,0 +1,99 @@
+<!--
+This file is part of fareshares-pricelist a simple nodejs web application to 
+manage the pricelist of a food coop.
+
+Copyright (C) 2022 Enrico Costanza e.costanza@ieee.org
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+{% extends "base.html" %}
+
+{% block content %}
+  <main>
+    <div class="py-5 text-center">
+        &nbsp;
+    </div>
+
+    <div class="row g-5">
+        <div class="col">
+
+        <form id="addForm">
+        <div class="row">
+            <div class="col">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control needs-validation" id="username" aria-describedby="usernameHelp" required>
+                    <div class="invalid-feedback">This field is required.</div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="text" class="form-control needs-validation" id="password" aria-describedby="passwordHelp" required>
+                    <div class="invalid-feedback">This field is required.</div>
+                </div>      
+            </div>
+
+            <div class="col">
+                <div class="mt-4">
+                    <button 
+                    id="addButton" 
+                    class="btn btn-primary" 
+                    type="button" 
+                    disabled
+                    aria-disabled="true">Add</button>
+                </div>
+            </div>
+        </form>
+        </div>
+          
+        </div> <!-- col -->
+    </div><!-- row -->
+
+    <div class="row g-5">
+        <div class="col">
+        <table class="table">
+        <thead>
+        <tr>
+            <td>Username</td>
+            <td>Edit</td>
+            <td>Delete</td>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        </table>
+        </div> <!-- col -->
+    </div><!-- row -->
+
+  </main>
+
+{% endblock %}
+
+
+{% block js %}
+    <!-- local imports -->
+    <script type="text/javascript" src="{{rootUrl}}/static/js/libs/d3.v6.min.js"></script>
+    <script type="text/javascript" src="{{rootUrl}}/static/js/libs/autocomplete.js"></script>
+    <script type="text/javascript" src="{{rootUrl}}/static/js/log.js"></script>
+    <script type="text/javascript">
+      const categories = [];
+      //{% for c in categories %}
+      //categories.push("{{ c.name }}");
+      //{% endfor %}
+    </script>
+{% endblock %}
+

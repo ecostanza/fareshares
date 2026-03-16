@@ -7,3 +7,6 @@ tmp.txt
 package-lock.json
 *dump.csv
 *dump*.csv
+*.pyc
+__pycache__/
+privatesettings.py
