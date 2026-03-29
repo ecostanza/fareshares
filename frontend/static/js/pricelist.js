@@ -286,10 +286,18 @@ document.addEventListener("DOMContentLoaded", function() {
             // iterate over _order_data and populate the modal
             for (const item of Object.values(_order_data)) {
                 console.log('item', item);
-                const entry = `${item['code']}, ${item['order_number']}`;
+                let entry = `${item['code'].toUpperCase()},${item['order_number']}`;
+                // entry += `,"${item['infinity_desc']}"`;
+                // if (item['supplier'] === 'infinity') {
+                //     entry += `,${item['infinity_price']}`;
+                // } else if (item['supplier'] === 'suma') {
+                //     entry += `,${item['suma_price']}`;
+                // }
                 console.log('entry', entry);
+
                 const selector = `pre#${item['supplier']}Basket`;
                 console.log('selector', selector);
+
                 const destination = d3.select(selector);
                 const existing_text = destination.text();
                 console.log('existing_text', existing_text);
@@ -351,9 +359,31 @@ document.addEventListener("DOMContentLoaded", function() {
                 render(_all_entries);
                 update_order_amounts();
             });
-            
+
         });
         
+        d3.select('#bothSuppliersRadio').on('change', function (event) {
+            console.log('bothSuppliersRadio event');
+            if (this.checked) {
+                d3.selectAll('tr.infinity').style('display', '');
+                d3.selectAll('tr.suma').style('display', '');
+            }
+        });
+        d3.select('#infinityOnlyRadio').on('change', function (event) {
+            console.log('infinityOnlyRadio event');
+            if (this.checked) {
+                d3.selectAll('tr.infinity').style('display', '');
+                d3.selectAll('tr.suma').style('display', 'none');
+            }
+        });
+        d3.select('#sumaOnlyRadio').on('change', function (event) {
+            console.log('sumaOnlyRadio event');
+            if (this.checked) {
+                d3.selectAll('tr.infinity').style('display', 'none');
+                d3.selectAll('tr.suma').style('display', '');
+            }
+        });
+
     }
 
     function setup_filters () {
@@ -524,48 +554,52 @@ document.addEventListener("DOMContentLoaded", function() {
         header: 'Description'
     });
 
+    const infinity_field = field({
+        key: 'infinity',
+        header: 'Infinity',
+        interactive_header: function () {
+            let html = `
+            <select id="infinity-filter-select" class="form-select-sm infinity-filter" aria-label="Updated on select">\n
+            `;
+            for (const option of [
+            {'value': "any", "label": "any"}, 
+            {'value': "true", "label": "yes"}, 
+            {'value': "false", "label": "no"}] ) {
+                html += `<option value="${option.value}"\n`;
+                html += `>${option.label}</option>`;
+            }
+            html += '</select>';
+            return html;
+        }()
+    });
+    const suma_field = field({
+        key: 'suma',
+        header: 'Suma',
+        interactive_header: function () {
+            let html = `
+            <select id="suma-filter-select" class="form-select-sm suma-filter" aria-label="Updated on select">\n
+            `;
+            for (const option of [
+            {'value': "any", "label": "any"}, 
+            {'value': "true", "label": "yes"}, 
+            {'value': "false", "label": "no"}] ) {
+                html += `<option value="${option.value}"\n`;
+                html += `>${option.label}</option>`;
+            }
+            html += '</select>';
+            return html;
+        }()
+    });
+
+
 
     let _all_fields = [
         // field({
         //     key: function (e) {return e['category']['name'];},
         //     header: 'Category'
         // }),
-        field({
-            key: 'infinity',
-            header: 'Infinity',
-            interactive_header: function () {
-                let html = `
-                <select id="infinity-filter-select" class="form-select-sm infinity-filter" aria-label="Updated on select">\n
-                `;
-                for (const option of [
-                {'value': "any", "label": "any"}, 
-                {'value': "true", "label": "yes"}, 
-                {'value': "false", "label": "no"}] ) {
-                    html += `<option value="${option.value}"\n`;
-                    html += `>${option.label}</option>`;
-                }
-                html += '</select>';
-                return html;
-            }()
-        }),
-        field({
-            key: 'suma',
-            header: 'Suma',
-            interactive_header: function () {
-                let html = `
-                <select id="suma-filter-select" class="form-select-sm suma-filter" aria-label="Updated on select">\n
-                `;
-                for (const option of [
-                {'value': "any", "label": "any"}, 
-                {'value': "true", "label": "yes"}, 
-                {'value': "false", "label": "no"}] ) {
-                    html += `<option value="${option.value}"\n`;
-                    html += `>${option.label}</option>`;
-                }
-                html += '</select>';
-                return html;
-            }()
-        }),
+        infinity_field,
+        suma_field,
         field({
             key: 'brand',
             interactive_header: function () {
@@ -845,10 +879,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     return html;
                 }
             }),
-            // field({
-            //     key: 'supplier',
-            //     header: 'Supplier'
-            // }),
+            field({
+                key: 'code',
+                header: 'Code'
+            }),
             description_field,
             field({
                 key: 'size',

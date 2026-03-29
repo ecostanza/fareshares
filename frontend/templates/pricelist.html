@@ -33,6 +33,33 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     <button id="basketButton" class="float btn btn-outline-secondary btn-sm" type="button">
       Ordering Basket
     </button>
+
+    <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+      <input type="radio" class="btn-check" name="btnradio" id="bothSuppliersRadio" autocomplete="off" checked>
+      <label class="btn btn-sm btn-outline-secondary" for="bothSuppliersRadio">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-half" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill:#aabcb0;"/>
+          <path d="M8 15A7 7 0 1 0 8 1z"  style="fill:#f7eac1;"/>
+        </svg>
+        All
+      </label>
+
+      <input type="radio" class="btn-check btn-sm btn-secondary" name="btnradio" id="infinityOnlyRadio" autocomplete="off">
+      <label class="btn btn-sm btn-outline-secondary" for="infinityOnlyRadio">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill:#aabcb0;"/>
+        </svg>
+        Infinity only
+      </label>
+
+      <input type="radio" class="btn-check btn-sm btn-secondary" name="btnradio" id="sumaOnlyRadio" autocomplete="off">
+      <label class="btn btn-sm btn-outline-secondary" for="sumaOnlyRadio">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill:#f7eac1;"/>
+        </svg>
+        Suma only
+      </label>
+    </div>
     {% endif %}
 
     <!-- Settings Modal -->

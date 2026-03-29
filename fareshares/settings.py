@@ -17,14 +17,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 HOSTNAME = socket.gethostname()
 try:
-    from .privatesettings import SECRET_KEY, PS_PASSWORD, ADMINS  # pylint: disable=W0611
+    from .privatesettings import SECRET_KEY, DB_PASSWORD, ADMINS, DEPLOYMENT_HOSTS  # pylint: disable=W0611
 except ModuleNotFoundError:
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = 'django-insecure-sqz-y65are^x(iv)y!$kubj-l5hqmo13z1i0j^s=1o@s-qek9y'
     PS_PASSWORD = ''
     ADMINS = ()
 
-ROOT_URL = 'http://127.0.0.1:8000'
+LIVE = bool(HOSTNAME in DEPLOYMENT_HOSTS)
+
+#TODO: make this an external variable
+PROJECT_NAME = 'fareshares'
+#DEPLOYMENT_NAME = 'enrico'
+DEPLOYMENT_NAME = 'fs'
+DEPLOYMENT_SUBNET = "d-touch.f"
+
+PROTOCOL = "https"
+if LIVE:
+    ROOT_URL = '%s://%s.%s/%s' % (PROTOCOL, hostname, DEPLOYMENT_SUBNET, DEPLOYMENT_NAME)
+    BASE_URL = '/' + DEPLOYMENT_NAME
+    HOSTING = 'deployment'
+else:
+    ROOT_URL = 'http://127.0.0.1:8000/%s' % DEPLOYMENT_NAME
+    BASE_URL = ''
+    HOSTING = 'development'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -33,7 +50,6 @@ ROOT_URL = 'http://127.0.0.1:8000'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -70,6 +86,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'frontend.custom_context_processors.site_info',
             ],
         },
     },

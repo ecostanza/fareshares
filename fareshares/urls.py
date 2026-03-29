@@ -16,14 +16,34 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.conf import settings
 
 from django.contrib.auth import views as auth_views
 
+from django.conf.urls.static import static
+# from django.contrib.staticfiles.views import serve
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('frontend.urls')),
-    path('', include('backend.urls')),
-    # add login and logout views
-    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),   
 ]
+
+if settings.LIVE:
+    urlpatterns += [
+        # add login and logout views
+        path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+        path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),   
+
+        path('', include('frontend.urls')),
+        path('', include('backend.urls')),
+    ]
+else:
+    urlpatterns += [
+        # add login and logout views
+        path('fs/accounts/login/', auth_views.LoginView.as_view(), name='login'),
+        path('fs/accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),   
+
+        path('fs/', include('frontend.urls')),
+        path('fs/', include('backend.urls')),
+    ]
+    
+    urlpatterns += static('fs/static/', document_root=settings.BASE_DIR / 'frontend' / 'static')
