@@ -41,6 +41,7 @@ class Command(BaseCommand):
             prev_price = entry.fareshares_price
             if entry.suma:
                 suma_info = get_product_info(entry.suma, 'suma', suma_df)
+
                 if suma_info:
                     if suma_info.get('suma_price') != entry.suma_price:
                         # print(f"Updating Suma price for {entry} from {entry.suma_price} to {suma_info.get('suma_price')}")
@@ -63,8 +64,8 @@ class Command(BaseCommand):
                 update_count += 1
             
             # TODO: deal with entries where both infinity and suma prices are missing
-            # if not entry.suma_price and not entry.infinity_price:
-            #     print(f"Warning: Entry {entry} has no price information from either supplier.")
+            if not entry.suma_price and not entry.infinity_price:
+                print(f"Warning: Entry {entry} has no price information from either supplier.")
         
         # TODO create a report and email it out
         # filter all entries where price_updatedAt is within the last day, and create a report of the changes
