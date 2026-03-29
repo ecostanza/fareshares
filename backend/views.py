@@ -116,7 +116,12 @@ def add_entry(request):
     data = json.loads(request.body)
     category_name = data.get('category_name')
     suma_code = data.get('suma', None)
+    if suma_code == 'none':
+        suma_code = None
     infinity_code = data.get('infinity', None)
+    if infinity_code == 'none':
+        infinity_code = None
+    print('infinity_code:', infinity_code)
     if suma_code is None and infinity_code is None:
         return JsonResponse({'status': 'error', 'message': 'At least one of Suma or Infinity code must be provided'}, status=400)
 
