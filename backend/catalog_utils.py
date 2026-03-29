@@ -235,6 +235,8 @@ def get_product_info(product_id, supplier, df):
                 raise
     elif supplier == 'suma':
         selected_row = df[df['suma_code'].str.lower() == product_id.lower()]
+        # print('product_id.lower():', product_id.lower())
+        
         if not selected_row.empty:
             row = selected_row.iloc[0]
             # print('row:', row)
@@ -244,7 +246,8 @@ def get_product_info(product_id, supplier, df):
 
 def find_matches(product_info, other_supplier, other_df):
     # Implementation for finding matching products in the other supplier's catalog
-    # print(other_df.head())
+    # print('other_df.head():', other_df.head())
+    # print('product_info:', product_info)
     idx = other_df['brand'].str.lower() == product_info['brand'].lower()
     selected = other_df[idx]
 
@@ -291,7 +294,9 @@ if __name__ == "__main__":
     # infinity_p_i = get_product_info('100545', 'infinity', infinity_df)
     infinity_p_i = get_product_info('390189', 'infinity', infinity_df)
     
-    print(infinity_p_i)
+    # print(infinity_p_i)
+    suma_p_i = get_product_info('MF-REGBA', 'suma', suma_df)
+    print('suma_p_i:', suma_p_i)
 
     # matches = find_matches(infinity_p_i, 'suma', suma_df)
     # print('matches:')
